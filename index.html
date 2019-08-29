@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="style.css" type = "text/css">
+  <title>Mega Dog</title>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script type="text/javascript" >
+    
+    let level = String(window.location).split("?")[1];
+
+    let levels = {
+      "01": ["control.js", "display.js", "engine.js", "game.js", "main.js"]
+    }
+
+    for ( let i = 0 ; i < levels[level].length ; i++ ) {
+      let script = document.createElement("script");
+      script.setAttribute("type", "text/javascript");
+      script.setAttribute("src", levels[level][index]);
+      document.head.appendChild(script);
+    }
+
+  </script>
+</body>
+</html>
