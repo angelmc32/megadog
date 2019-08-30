@@ -16,7 +16,7 @@ window.addEventListener("load", function(event) {
 
   let render = function() {
     display.fill(game.world.background_color);// Clear background to game's background color.
-    display.drawRectangle(game.world.player.xPosition, game.world.player.yPosition, game.world.player.width, game.world.player.height, game.world.player.color);
+    display.drawImage(game.world.player.image, game.world.player.xPosition, game.world.player.yPosition, game.world.player.width, game.world.player.height);
     display.render();
   };
 

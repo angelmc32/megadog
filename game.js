@@ -3,10 +3,10 @@ class Game {
     this.world = {
       background_color: "#808080",
       friction: 0.9,
-      gravity: 3,
-      player: new Player(),
-      height: 72,
-      width: 128,
+      gravity: 2,
+      player: new Player(50, 50, "./images/gorduki_0.png"),
+      height: 640,
+      width: 1024,
 
       collideElement: function(element) {
         if ( element.xPosition < 0 ) {
@@ -46,12 +46,14 @@ class Game {
 };
 
 class Player {
-  constructor(x, y) {
+  constructor(x, y, imageSource) {
+    this.image = new Image()
+    this.image.src = imageSource;
     this.color = "#ff0000";
-    this.xPosition = 50;
-    this.yPosition = 50;
-    this.width = 16;
-    this.height = 16;
+    this.xPosition = x;
+    this.yPosition = y;
+    this.width = 64;
+    this.height = 64;
     this.jumpState = true;
     this.xVelocity = 0;
     this.yVelocity = 0;
@@ -66,16 +68,16 @@ class Player {
       }
 
       this.jumpState = true;
-      this.yVelocity -= 20;
+      this.yVelocity -= 32;
     }
   }
 
   moveLeft() {
-    this.xVelocity -= 0.5;
+    this.xVelocity -= 2;
   }
 
   moveRight() {
-    this.xVelocity += 0.5;
+    this.xVelocity += 2;
   }
 
   update() {

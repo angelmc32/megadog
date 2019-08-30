@@ -4,9 +4,9 @@ class Display {
     this.context = canvas.getContext("2d");
   }
 
-  drawRectangle(x, y, width, height, color) {
-    this.buffer.fillStyle = color;
-    this.buffer.fillRect(Math.floor(x), Math.floor(y), width, height);
+  drawImage(image, x, y, width, height) {
+    //this.buffer.fillStyle = color;
+    this.buffer.drawImage(image, Math.round(x), Math.round(y), width, height);
   }
 
   fill(color) {
@@ -29,4 +29,8 @@ class Display {
     }
     this.context.imageSmoothingEnabled = false;
   }
+}
+
+class TileSheet {
+  
 }
