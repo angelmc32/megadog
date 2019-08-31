@@ -19,9 +19,9 @@ class Control {
       case 39:
         this.right.getInput(down);
         break;
-      case 32:
+      /*case 32:
         this.space.getInput(down);
-        break;
+        break;*/
     }
   }
 }

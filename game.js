@@ -280,21 +280,21 @@ class Player {
   }
 
   moveLeft() {
-    this.xVelocity -= 2;
+    this.xVelocity -= 1;
   }
 
   moveRight() {
-    this.xVelocity += 2;
+    this.xVelocity += 1;
   }
 
   attack() {
     let attack = new Attack(
       "./images/32ball.png",
-      this.xPosition + 80,
-      this.yPosition + 64,
-      32,
-      32,
-      10
+      this.xPosition + 40,
+      this.yPosition + 24,
+      16,
+      16,
+      12
     );
     this.attacks.push(attack);
   }
@@ -309,6 +309,26 @@ class Player {
   update() {
     this.xPosition += this.xVelocity;
     this.yPosition += this.yVelocity;
+    this.updateAttacks();
+    this.removeAttacks();
+  }
+
+  updateAttacks() {
+    for (let i = 0; i < this.attacks.length; i++) {
+      this.attacks[i].xPosition += this.attacks[i].xSpeed;
+    }
+  }
+}
+
+class Attack {
+  constructor(imageSource, x, y, height, width, xSpeed) {
+    this.image = new Image();
+    this.image.src = imageSource;
+    this.xPosition = x;
+    this.yPosition = y;
+    this.height = height;
+    this.width = width;
+    this.xSpeed = xSpeed;
   }
 }
 

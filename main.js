@@ -9,6 +9,10 @@ window.addEventListener("load", function(event) {
     control.keyDownUp(event.type, event.keyCode);
   };
 
+  document.onkeydown = function(event) {
+    if (event.keyCode === 32) game.world.player.attack();
+  };
+
   let resize = function(event) {
     display.resize(
       document.documentElement.clientWidth - 32,
@@ -28,6 +32,15 @@ window.addEventListener("load", function(event) {
       game.world.player.width,
       game.world.player.height
     );
+    for (let i = 0; i < game.world.player.attacks.length; i++) {
+      display.drawImage(
+        game.world.player.attacks[i].image,
+        game.world.player.attacks[i].xPosition,
+        game.world.player.attacks[i].yPosition,
+        game.world.player.attacks[i].width,
+        game.world.player.attacks[i].height
+      );
+    }
     display.render();
   };
 
@@ -41,6 +54,9 @@ window.addEventListener("load", function(event) {
     if (control.up.active) {
       game.world.player.jump();
       control.up.active = false;
+    }
+    if (control.space.active) {
+      game.world.player.attack();
     }
 
     game.update();
