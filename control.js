@@ -7,10 +7,10 @@ class Control {
   }
 
   keyDownUp(type, keyCode) {
-    let down = ( type === "keydown" ) ? true : false;
+    let down = type === "keydown" ? true : false;
 
-    switch ( keyCode ) {
-      case 37: 
+    switch (keyCode) {
+      case 37:
         this.left.getInput(down);
         break;
       case 38:
@@ -33,7 +33,7 @@ class ButtonInput {
   }
 
   getInput(down) {
-    if ( this.down !== down ) this.active = down;
+    if (this.down !== down) this.active = down;
     this.down = down;
   }
 }
