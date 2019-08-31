@@ -2,45 +2,6 @@ class Game {
   constructor() {
     this.world = new World(2, 0.9);
   }
-  /*{
-      background_color: "#808080",
-      friction: 0.9,
-      gravity: 2,
-      player: new Player(50, 50, "./images/gorduki_0.png"),
-      height: 640,
-      width: 1024,
-
-      collideElement: function(element) {
-        if ( element.xPosition < 0 ) {
-          element.xPosition = 0;
-          element.xVelocity = 0;
-        }
-        else if ( element.xPosition + element.width > this.width ) {
-          element.xPosition = this.width - element.width;
-          element.xVelocity = 0;
-        }
-    
-        if ( element.yPosition < 0 ) {
-          element.yPosition = 0;
-          element.yVelocity = 0;
-        }
-        else if ( element.yPosition + element.height > this.height ) {
-          element.jumpState = false;
-          element.yPosition = this.height - element.height;
-          element.yVelocity = 0;
-        }
-      },
-    
-      update: function() {
-        this.player.yVelocity += this.gravity;
-        this.player.update();
-        this.player.xVelocity *= this.friction;
-        this.player.yVelocity *= this.friction;
-    
-        this.collideElement(this.player);
-      },
-    }
-  };*/
 
   update() {
     this.world.update();
@@ -52,7 +13,12 @@ class World {
     this.background_color = "#808080";
     this.gravity = gravity;
     this.friction = friction;
-    this.player = new Player(50, 50, "./images/gorduki_0.png");
+    this.player = new Player(
+      50,
+      50,
+      "./images/gorduki_0.png",
+      "./images/gordukip_0.png"
+    );
     this.columns = 16;
     this.rows = 10;
     this.tile_size = 64;
@@ -218,8 +184,8 @@ class World {
       326,
       326
     ];
-    this.height = 640;
-    this.width = 1024;
+    this.height = 576;
+    this.width = 768;
   }
 
   collideElement(element) {
@@ -234,9 +200,9 @@ class World {
     if (element.yPosition < 0) {
       element.yPosition = 0;
       element.yVelocity = 0;
-    } else if (element.yPosition + element.height > this.height - 95) {
+    } else if (element.yPosition + element.height > this.height) {
       element.jumpState = false;
-      element.yPosition = this.height - element.height - 95;
+      element.yPosition = this.height - element.height;
       element.yVelocity = 0;
     }
   }
@@ -252,9 +218,11 @@ class World {
 }
 
 class Player {
-  constructor(x, y, imageSource) {
-    this.image = new Image();
-    this.image.src = imageSource;
+  constructor(x, y, imageSource1, imageSource2) {
+    this.image1 = new Image();
+    this.image1.src = imageSource1;
+    this.image2 = new Image();
+    this.image2.src = imageSource2;
     this.color = "#ff0000";
     this.xPosition = x;
     this.yPosition = y;
@@ -263,17 +231,13 @@ class Player {
     this.jumpState = true;
     this.xVelocity = 0;
     this.yVelocity = 0;
+    this.charge = 0;
+    this.chargedState = false;
     this.attacks = [];
   }
 
   jump() {
     if (!this.jumpState) {
-      this.color = "#" + Math.floor(Math.random() * 16777216).toString(16);
-
-      if (this.color.length !== 7) {
-        this.color = this.color.slice(0, 1) + "0" + this.color.slice(1, 6);
-      }
-
       this.jumpState = true;
       this.yVelocity -= 32;
     }
@@ -288,15 +252,30 @@ class Player {
   }
 
   attack() {
-    let attack = new Attack(
-      "./images/32ball.png",
-      this.xPosition + 40,
-      this.yPosition + 24,
-      16,
-      16,
-      12
-    );
-    this.attacks.push(attack);
+    if (this.charge < 90 && !this.chargedState) {
+      let attack = new Attack(
+        "./images/32ball.png",
+        this.xPosition + 40,
+        this.yPosition + 24,
+        16,
+        16,
+        12
+      );
+      this.attacks.push(attack);
+    } else {
+      let attack = new Attack(
+        "./images/32ball.png",
+        this.xPosition + 16,
+        this.yPosition + 16,
+        48,
+        48,
+        15
+      );
+      this.attacks.push(attack);
+      this.charge = 0;
+      this.chargedState = false;
+      console.log("Descargado :(");
+    }
   }
 
   removeAttacks() {

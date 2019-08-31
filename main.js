@@ -10,7 +10,12 @@ window.addEventListener("load", function(event) {
   };
 
   document.onkeydown = function(event) {
-    if (event.keyCode === 32) game.world.player.attack();
+    if (
+      event.keyCode === 32 &&
+      game.world.player.attacks.length < 5 &&
+      game.world.player.charge < 5
+    )
+      game.world.player.attack();
   };
 
   let resize = function(event) {
@@ -23,10 +28,11 @@ window.addEventListener("load", function(event) {
   };
 
   let render = function() {
-    display.fill(game.world.background_color); // Clear background to game's background color.
-    display.drawMap(game.world.map, game.world.columns);
-    display.drawImage(
-      game.world.player.image,
+    //display.fill(game.world.background_color); // Clear background to game's background color.
+    display.drawBackground();
+    //display.drawMap(game.world.map, game.world.columns);
+    display.drawPlayer(
+      game.world.player,
       game.world.player.xPosition,
       game.world.player.yPosition,
       game.world.player.width,
@@ -55,8 +61,18 @@ window.addEventListener("load", function(event) {
       game.world.player.jump();
       control.up.active = false;
     }
-    if (control.space.active) {
+    if (control.space.down) {
+      if (!game.world.player.chargedState) {
+        game.world.player.charge++;
+        if (game.world.player.charge > 89)
+          game.world.player.chargedState = true;
+      }
+    }
+    if (game.world.player.chargedState && !control.space.down)
       game.world.player.attack();
+    if (!control.space.down) {
+      if (game.world.player.charge > 5) game.world.player.attack();
+      game.world.player.charge = 0;
     }
 
     game.update();
@@ -78,6 +94,7 @@ window.addEventListener("load", function(event) {
   );
 
   display.tile_sheet.image.src = "./images/world_sprites/floor.png";
+  display.background.image.src = "./images/world_sprites/background.png";
 
   window.addEventListener("keydown", keyDownUp);
   window.addEventListener("keyup", keyDownUp);

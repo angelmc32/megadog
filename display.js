@@ -3,6 +3,21 @@ class Display {
     this.buffer = document.createElement("canvas").getContext("2d");
     this.context = canvas.getContext("2d");
     this.tile_sheet = new TileSheet(18, 53, 36);
+    this.background = new TileSheet(515, 5, 7);
+  }
+
+  drawBackground() {
+    this.buffer.drawImage(
+      this.background.image,
+      1548,
+      1332,
+      500,
+      430,
+      0,
+      0,
+      768,
+      576
+    );
   }
 
   drawMap(map, columns) {
@@ -32,6 +47,24 @@ class Display {
   drawImage(image, x, y, width, height) {
     //this.buffer.fillStyle = color;
     this.buffer.drawImage(image, Math.round(x), Math.round(y), width, height);
+  }
+
+  drawPlayer(player, x, y, width, height) {
+    if (player.chargedState)
+      this.buffer.drawImage(
+        player.image2,
+        Math.round(x),
+        Math.round(y),
+        width,
+        height
+      );
+    this.buffer.drawImage(
+      player.image1,
+      Math.round(x),
+      Math.round(y),
+      width,
+      height
+    );
   }
 
   fill(color) {
