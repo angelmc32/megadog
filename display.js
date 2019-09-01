@@ -2,22 +2,18 @@ class Display {
   constructor(canvas) {
     this.buffer = document.createElement("canvas").getContext("2d");
     this.context = canvas.getContext("2d");
-    this.tile_sheet = new TileSheet(18, 53, 36);
-    this.background = new TileSheet(515, 5, 7);
+    this.tile_sheet = new TileSheet(64, 5, 5);
+    this.background = new Background(510, 5, 7, 640, 480, 1548, 1332);
   }
 
-  drawBackground() {
-    this.buffer.drawImage(
-      this.background.image,
-      1548,
-      1332,
-      500,
-      430,
-      0,
-      0,
-      640,
-      480
-    );
+  drawBackground(player) {
+
+    if ( player.xPosition + 65 > this.background.width) {
+      player.xPosition = 0
+      this.background.currentX = 1548-515;
+      console.log("avanza");
+    }
+    this.buffer.drawImage(this.background.image, this.background.currentX, this.background.yCoordinate, this.background.tile_size, 425, 0, 0, this.background.width, this.background.height);
   }
 
   drawMap(map, columns) {
@@ -109,5 +105,18 @@ class TileSheet {
     this.tile_size = tile_size;
     this.columns = columns;
     this.rows = rows;
+  }
+}
+
+class Background extends TileSheet {
+  constructor(tile_size, columns, rows, canvasWidth, canvasHeight, xCoordinate, yCoordinate) {
+    super(tile_size, columns, rows);
+    this.width = canvasWidth;
+    this.height = canvasHeight;
+    this.xCoordinate = xCoordinate; // Sets the x position in the tile sheet to "select" background
+    this.yCoordinate = yCoordinate; // Sets the y position in the tile sheet to "select" background
+    this.currentX = xCoordinate;
+    this.start = 0;
+    this.end = 640*5;
   }
 }

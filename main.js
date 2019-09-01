@@ -29,8 +29,8 @@ window.addEventListener("load", function(event) {
 
   let render = function() {
     //display.fill(game.world.background_color); // Clear background to game's background color.
-    display.drawBackground();
-    //display.drawMap(game.world.map, game.world.columns);
+    display.drawBackground(game.world.player);
+    display.drawMap(game.world.map, game.world.columns);
     display.drawPlayer(
       game.world.player,
       game.world.player.xPosition,
@@ -93,7 +93,7 @@ window.addEventListener("load", function(event) {
     { once: true }
   );
 
-  display.tile_sheet.image.src = "./images/world_sprites/floor.png";
+  display.tile_sheet.image.src = "./images/world_sprites/map_tiles.png";
   display.background.image.src = "./images/world_sprites/background.png";
 
   window.addEventListener("keydown", keyDownUp);
