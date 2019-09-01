@@ -184,8 +184,8 @@ class World {
       326,
       326
     ];
-    this.height = 576;
-    this.width = 768;
+    this.height = 480;
+    this.width = 640;
   }
 
   collideElement(element) {
