@@ -13,26 +13,22 @@ class World {
     this.background_color = "#808080";
     this.gravity = gravity;
     this.friction = friction;
-    this.player = new Player(
-      50,
-      50,
-      "./images/gorduki_0.png",
-      "./images/gordukip_0.png"
-    );
+    this.player = new Player(50, 50, "./images/gorduki_0.png", "./images/gordukip_0.png");
     this.columns = 10;
     this.rows = 8;
     this.tile_size = 64;
     this.map = [4,4,4,4,4,4,4,4,4,4,
                 4,4,4,4,4,4,4,4,4,4,
-                4,4,4,4,4,4,4,4,4,4,
-                4,4,4,4,4,4,4,4,4,4,
-                4,4,4,3,4,4,3,4,4,4,
+                4,4,4,4,4,4,4,4,4,16,
+                4,4,4,4,4,4,3,4,4,4,
+                4,4,4,3,4,4,16,4,4,4,
                 4,4,4,4,4,4,4,4,4,4,
                 1,1,1,1,1,2,4,0,1,1,
                 6,6,6,6,6,7,4,5,6,6];
+    this.collision_map = []
     this.height = 480;
     this.width = 640;
-  }
+  } 
 
   collideElement(element) {
     if (element.xPosition < 0) {
@@ -51,6 +47,8 @@ class World {
       element.yPosition = this.height - element.height;
       element.yVelocity = 0;
     }
+
+    
   }
 
   update() {

@@ -19,24 +19,12 @@ class Display {
   drawMap(map, columns) {
     for (let index = 0; index < map.length; index++) {
       let value = map[index];
-      let source_x =
-        (value % this.tile_sheet.columns) * this.tile_sheet.tile_size;
-      let source_y =
-        Math.floor(value / this.tile_sheet.columns) * this.tile_sheet.tile_size;
+      let source_x = (value % this.tile_sheet.columns) * this.tile_sheet.tile_size;
+      let source_y = Math.floor(value / this.tile_sheet.columns) * this.tile_sheet.tile_size;
       let destination_x = (index % columns) * 64;
       let destination_y = Math.floor(index / columns) * 64;
 
-      this.buffer.drawImage(
-        this.tile_sheet.image,
-        source_x,
-        source_y,
-        this.tile_sheet.tile_size,
-        this.tile_sheet.tile_size,
-        destination_x,
-        destination_y,
-        64,
-        64
-      );
+      this.buffer.drawImage(this.tile_sheet.image, source_x, source_y, this.tile_sheet.tile_size, this.tile_sheet.tile_size, destination_x, destination_y, 64, 64);
     }
   }
 
@@ -47,44 +35,18 @@ class Display {
 
   drawPlayer(player, x, y, width, height) {
     if (player.chargedState)
-      this.buffer.drawImage(
-        player.image2,
-        Math.round(x),
-        Math.round(y),
-        width,
-        height
-      );
-    this.buffer.drawImage(
-      player.image1,
-      Math.round(x),
-      Math.round(y),
-      width,
-      height
-    );
+      this.buffer.drawImage(player.image2, Math.round(x), Math.round(y), width, height);
+    else 
+      this.buffer.drawImage(player.image1, Math.round(x), Math.round(y), width, height);
   }
 
   fill(color) {
     this.buffer.fillStyle = color;
-    this.buffer.fillRect(
-      0,
-      0,
-      this.buffer.canvas.width,
-      this.buffer.canvas.height
-    );
+    this.buffer.fillRect(0, 0, this.buffer.canvas.width, this.buffer.canvas.height);
   }
 
   render() {
-    this.context.drawImage(
-      this.buffer.canvas,
-      0,
-      0,
-      this.buffer.canvas.width,
-      this.buffer.canvas.height,
-      0,
-      0,
-      this.context.canvas.width,
-      this.context.canvas.height
-    );
+    this.context.drawImage(this.buffer.canvas, 0, 0, this.buffer.canvas.width, this.buffer.canvas.height, 0, 0, this.context.canvas.width, this.context.canvas.height);
   }
 
   resize(width, height, heightWidthRatio) {
