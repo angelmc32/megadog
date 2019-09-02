@@ -10,10 +10,10 @@ class Game {
 
 class World {
   constructor(gravity, friction) {
-    this.background_color = "#808080";
+    this.collider = new Collider();
     this.gravity = gravity;
     this.friction = friction;
-    this.player = new Player(50, 50, "./images/gorduki_0.png", "./images/gordukip_0.png");
+    this.player = new Player(50, 50, 64, 64, "./images/gorduki_0.png", "./images/gordukip_0.png");
     this.columns = 10;
     this.rows = 8;
     this.tile_size = 64;
@@ -23,10 +23,17 @@ class World {
                 4,4,4,4,4,4,3,4,4,4,
                 4,4,4,3,4,4,16,4,4,4,
                 4,4,4,4,4,4,4,4,4,4,
-                1,1,1,1,1,2,4,0,1,1,
-                6,6,6,6,6,7,4,5,6,6];
-    this.collision_map = []
-    this.height = 480;
+                1,1,1,1,1,2,4,4,0,1,
+                6,6,6,6,6,7,4,4,5,6];
+    this.collision_map = [0,0,0,0,0,0,0,0,0,0,
+                          0,0,0,0,0,0,0,0,0,0,
+                          0,0,0,0,0,0,0,0,0,1,
+                          0,0,0,0,0,0,0,0,0,0,
+                          0,0,0,0,0,0,1,0,0,0,
+                          0,0,0,0,0,0,0,0,0,0,
+                          1,1,1,1,1,3,0,0,9,1,
+                          0,0,0,0,0,2,0,0,8,0];
+    this.height = 512;
     this.width = 640;
   } 
 
@@ -48,7 +55,27 @@ class World {
       element.yVelocity = 0;
     }
 
+    let bottom, left, right, top, value;
     
+    top    = Math.floor(element.getTop()    / this.tile_size);
+    left   = Math.floor(element.getLeft()   / this.tile_size);
+    value  = this.collision_map[top * this.columns + left];
+    this.collider.collide(value, element, left * this.tile_size, top * this.tile_size, this.tile_size);
+
+    top    = Math.floor(element.getTop()    / this.tile_size);
+    right  = Math.floor(element.getRight()  / this.tile_size);
+    value  = this.collision_map[top * this.columns + right];
+    this.collider.collide(value, element, right * this.tile_size, top * this.tile_size, this.tile_size);
+
+    bottom = Math.floor(element.getBottom() / this.tile_size);
+    left   = Math.floor(element.getLeft()   / this.tile_size);
+    value  = this.collision_map[bottom * this.columns + left];
+    this.collider.collide(value, element, left * this.tile_size, bottom * this.tile_size, this.tile_size);
+
+    bottom = Math.floor(element.getBottom() / this.tile_size);
+    right  = Math.floor(element.getRight()  / this.tile_size);
+    value  = this.collision_map[bottom * this.columns + right];
+    this.collider.collide(value, element, right * this.tile_size, bottom * this.tile_size, this.tile_size);
   }
 
   update() {
@@ -61,17 +88,129 @@ class World {
   }
 }
 
-class Player {
-  constructor(x, y, imageSource1, imageSource2) {
+class Collider {
+  constructor(){
+    this.name = "collider";
+  }
+
+  collidePlatformBottom(element, tile_bottom) {
+    if ( element.getTop() < tile_bottom && element.getOldTop() >= tile_bottom ) {
+      element.setTop(tile_bottom);
+      element.yVelocity = 0;
+      return true;
+    }
+    return false;
+  }
+
+  collidePlatformLeft(element, tile_left) {
+    if ( element.getRight() > tile_left && element.getOldRight() <= tile_left ) {
+      console.log("collision");
+      element.setRight(tile_left - 1);
+      element.xVelocity = 0;
+      return true;
+    }
+    return false;
+  }
+
+  collidePlatformRight(element, tile_right) {
+    if ( element.getLeft() < tile_right && element.getOldLeft() >= tile_right ) {
+      console.log("collision");
+      element.setLeft(tile_right - 1);
+      element.xVelocity = 0;
+      return true;
+    }
+    return false;
+  }
+
+  collidePlatformTop(element, tile_top) {
+    if (element.getBottom() > tile_top && element.getOldBottom() <= tile_top) {
+      element.setBottom(tile_top - 1);
+      element.yVelocity = 0;
+      element.jumpState = false;
+      return true;
+    }
+    return false;
+  }
+
+  collide(value, element, tile_x, tile_y, tile_size){
+    switch(value) { // value of the tile
+
+      /* All 15 tile types can be described with only 4 collision methods. These
+      methods are mixed and matched for each unique tile. */
+
+      case  1: this.collidePlatformTop(element, tile_y); break;
+      case  2: this.collidePlatformRight(element, tile_x + tile_size); break;
+      case  3: if (this.collidePlatformTop(element, tile_y)) return;
+               this.collidePlatformRight(element, tile_x + tile_size); break;
+      case  4: this.collidePlatformBottom(element, tile_y + tile_size); break;
+      case  5: if (this.collidePlatformTop(element, tile_y)) return;
+               this.collidePlatformBottom(element, tile_y + tile_size); break;
+      case  6: if (this.collidePlatformRight(element, tile_x + tile_size)) return;
+               this.collidePlatformBottom(element, tile_y + tile_size); break;
+      case  7: if (this.collidePlatformTop(element, tile_y)) return;
+               if (this.collidePlatformRight(element, tile_x + tile_size)) return;
+               this.collidePlatformBottom(element, tile_y + tile_size); break;
+      case  8: this.collidePlatformLeft(element, tile_x); break;
+      case  9: if (this.collidePlatformTop(element, tile_y)) return;
+               this.collidePlatformLeft(element, tile_x); break;
+      case 10: if (this.collidePlatformLeft(element, tile_x)) return;
+               this.collidePlatformRight(element, tile_x + tile_size); break;
+      case 11: if (this.collidePlatformTop(element, tile_y)) return;
+               if (this.collidePlatformLeft(element, tile_x)) return;
+               this.collidePlatformRight(element, tile_x + tile_size); break;
+      case 12: if (this.collidePlatformLeft(element, tile_x)) return;
+               this.collidePlatformBottom(element, tile_y + tile_size); break;
+      case 13: if (this.collidePlatformTop(element, tile_y)) return;
+               if (this.collidePlatformLeft(element, tile_x)) return;
+               this.collidePlatformBottom(element, tile_y + tile_size); break;
+      case 14: if (this.collidePlatformLeft(element, tile_x)) return;
+               if (this.collidePlatformRight(element, tile_x)) return;
+               this.collidePlatformBottom(element, tile_y + tile_size); break;
+      case 15: if (this.collidePlatformTop(element, tile_y)) return;
+               if (this.collidePlatformLeft(element, tile_x)) return;
+               if (this.collidePlatformRight(element, tile_x + tile_size)) return;
+               this.collidePlatformBottom(element, tile_y + tile_size); break;
+
+    }
+  }
+}
+
+class Element {
+  constructor(x, y, width, height) {
+    this.xPosition = x;
+    this.yPosition = y;
+    this.xOldPosition = x;
+    this.yOldPosition = y;
+    this.width = width;
+    this.height = height;
+  }
+
+  getBottom()     { return this.yPosition + this.height }
+  getLeft()       { return this.xPosition }
+  getRight()      { return this.xPosition + this.width }
+  getTop()        { return this.yPosition }
+  getOldBottom()  { return this.yOldPosition + this.height }
+  getOldLeft()    { return this.xOldPosition }
+  getOldRight()   { return this.xOldPosition + this.width }
+  getOldTop()     { return this.yOldPosition }
+  setBottom(y)    { this.yPosition = y - this.height }
+  setLeft(x)      { this.xPosition = x }
+  setRight(x)     { this.xPosition = x - this.width }
+  setTop(y)       { this.yPosition = y }
+  setOldBottom(y) { this.yOldPosition = y - this.height }
+  setOldLeft(x)   { this.xOldPosition = x }
+  setOldRight(x)  { this.xOldPosition = x - this.width }
+  setOldTop(y)    { this.yOldPosition = y }
+
+}
+
+class Player extends Element {
+  constructor(x, y, width, height, imageSource1, imageSource2) {
+    super(x, y, width, height);
     this.image1 = new Image();
     this.image1.src = imageSource1;
     this.image2 = new Image();
     this.image2.src = imageSource2;
-    this.color = "#ff0000";
-    this.xPosition = x;
-    this.yPosition = y;
-    this.width = 64;
-    this.height = 64;
     this.jumpState = true;
     this.xVelocity = 0;
     this.yVelocity = 0;
@@ -83,16 +222,16 @@ class Player {
   jump() {
     if (!this.jumpState) {
       this.jumpState = true;
-      this.yVelocity -= 32;
+      this.yVelocity -= 30;
     }
   }
 
   moveLeft() {
-    this.xVelocity -= 1;
+    this.xVelocity -= 0.9;
   }
 
   moveRight() {
-    this.xVelocity += 1;
+    this.xVelocity += 0.9;
   }
 
   attack() {
@@ -154,46 +293,3 @@ class Attack {
     this.xSpeed = xSpeed;
   }
 }
-
-/*
-this.map = [49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,
-                49,18,18,18,50,49,19,20,17,18,36,37,11,40,40,40,17,19,40,32,32,32,40,08,11,32,40,32,32,32,40,13,06,06,29,02,00,00,00,00,11,40,40,40,17,19,40,32,32,32,40,08,11,40,40,40,17,19,40,32,32,32,40,08,];
-*/

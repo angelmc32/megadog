@@ -3,7 +3,7 @@ class Display {
     this.buffer = document.createElement("canvas").getContext("2d");
     this.context = canvas.getContext("2d");
     this.tile_sheet = new TileSheet(64, 5, 5);
-    this.background = new Background(510, 5, 7, 640, 480, 1548, 1332);
+    this.background = new Background(510, 5, 7, 640, 532, 1548, 1332);
   }
 
   drawBackground(player) {
