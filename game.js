@@ -113,9 +113,9 @@ class Collider {
   }
 
   collidePlatformRight(element, tile_right) {
-    if ( element.getLeft() < tile_right && element.getOldLeft() >= tile_right ) {
+    if ( element.getLeft() < tile_right /*&& element.getOldLeft() >= tile_right*/ ) {
       console.log("collision");
-      element.setLeft(tile_right - 1);
+      element.setLeft(tile_right + 1);
       element.xVelocity = 0;
       return true;
     }
@@ -124,7 +124,7 @@ class Collider {
 
   collidePlatformTop(element, tile_top) {
     if (element.getBottom() > tile_top && element.getOldBottom() <= tile_top) {
-      element.setBottom(tile_top - 1);
+      element.setBottom(tile_top - 0.1);
       element.yVelocity = 0;
       element.jumpState = false;
       return true;
@@ -139,7 +139,7 @@ class Collider {
       methods are mixed and matched for each unique tile. */
 
       case  1: this.collidePlatformTop(element, tile_y); break;
-      case  2: this.collidePlatformRight(element, tile_x + tile_size); break;
+      case  2: this.collidePlatformRight(element, tile_x + tile_size); console.log(element.getLeft());; break;
       case  3: if (this.collidePlatformTop(element, tile_y)) return;
                this.collidePlatformRight(element, tile_x + tile_size); break;
       case  4: this.collidePlatformBottom(element, tile_y + tile_size); break;
@@ -217,21 +217,26 @@ class Player extends Element {
     this.charge = 0;
     this.chargedState = false;
     this.attacks = [];
+    this.spriteHeight = height - 32;
   }
+
+  getRight()      { return this.xPosition + this.width - 18}
+  getTop()        { return this.yPosition + 32 }
+  getOldTop()     { return this.yOldPosition + 32 }
 
   jump() {
     if (!this.jumpState) {
       this.jumpState = true;
-      this.yVelocity -= 30;
+      this.yVelocity -= 32;
     }
   }
 
   moveLeft() {
-    this.xVelocity -= 0.9;
+    this.xVelocity -= 0.5;
   }
 
   moveRight() {
-    this.xVelocity += 0.9;
+    this.xVelocity += 0.5;
   }
 
   attack() {
