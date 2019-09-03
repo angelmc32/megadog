@@ -1,6 +1,6 @@
 class Game {
-  constructor() {
-    this.world = new World(2, 0.9);
+  constructor(levels) {
+    this.world = new World(2, 0.9, levels);
   }
 
   update() {
@@ -9,7 +9,7 @@ class Game {
 }
 
 class World {
-  constructor(gravity, friction) {
+  constructor(gravity, friction, levels) {
     this.collider = new Collider();
     this.gravity = gravity;
     this.friction = friction;
@@ -17,14 +17,10 @@ class World {
     this.columns = 10;
     this.rows = 8;
     this.tile_size = 64;
-    this.map = [4,4,4,4,4,4,4,4,4,4,
-                4,4,4,4,4,4,4,4,4,4,
-                4,4,4,4,4,4,4,4,4,16,
-                4,4,4,4,4,4,3,4,4,4,
-                4,4,4,3,4,4,16,4,4,4,
-                4,4,4,4,4,4,4,4,4,4,
-                1,1,1,1,1,2,4,4,0,1,
-                6,6,6,6,6,7,4,4,5,6];
+    this.levels = levels;
+    this.maps = levels[0].maps;
+    this.map = this.maps[0];
+    this.stage = 0;
     this.collision_map = [0,0,0,0,0,0,0,0,0,0,
                           0,0,0,0,0,0,0,0,0,0,
                           0,0,0,0,0,0,0,0,0,1,
@@ -78,6 +74,14 @@ class World {
     this.collider.collide(value, element, right * this.tile_size, bottom * this.tile_size, this.tile_size);
   }
 
+  advanceMap() {
+    if (this.player.xPosition + 65 > this.width ) {
+      this.player.xPosition = 0;
+      this.stage++;
+      this.map = this.maps[this.stage];
+    }
+  }
+
   update() {
     this.player.yVelocity += this.gravity;
     this.player.update();
@@ -85,6 +89,7 @@ class World {
     this.player.yVelocity *= this.friction;
 
     this.collideElement(this.player);
+    this.advanceMap();
   }
 }
 
@@ -298,3 +303,4 @@ class Attack {
     this.xSpeed = xSpeed;
   }
 }
+

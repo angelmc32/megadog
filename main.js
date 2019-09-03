@@ -1,6 +1,8 @@
 let control = new Control();
 let display = new Display(document.getElementById("canvas"));
-let game = new Game();
+let level1 = new Level(1, 4);
+let levels = [level1];
+let game = new Game(levels);
 
 window.addEventListener("load", function(event) {
   "use strict";

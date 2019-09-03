@@ -7,13 +7,13 @@ class Display {
   }
 
   drawBackground(player) {
-
+    /*
     if ( player.xPosition + 65 > this.background.width) {
       player.xPosition = 0
       this.background.xCoordinate -= 515;
       this.background.currentX = this.background.xCoordinate;
       console.log("avanza");
-    }
+    }*/
     this.buffer.drawImage(this.background.image, this.background.currentX, this.background.yCoordinate, this.background.tile_size, 425, 0, 0, this.background.width, this.background.height);
     /*
     if ( this.background.currentX > this.background.width ) {
