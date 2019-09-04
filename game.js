@@ -13,7 +13,7 @@ class World {
     this.collider = new Collider();
     this.gravity = gravity;
     this.friction = friction;
-    this.player = new Player(50, 50, 64, 64, frames, "./images/gorduki_0.png", "./images/gordukip_0.png");
+    this.player = new Player(50, 50, 64, 64, frames);
     this.columns = 10;
     this.rows = 8;
     this.tile_size = 64;
@@ -50,6 +50,7 @@ class World {
       element.yPosition = 320;
       element.xPosition = 16;
       element.yVelocity = 0;
+      element.lives -= 1;
     }
 
     let bottom, left, right, top, value;
@@ -211,6 +212,7 @@ class Element {
     this.height = height;
     this.frames = frames;
     this.currentFrame = 0;
+    this.lives = 1;
   }
 
   getBottom()     { return this.yPosition + this.height }
@@ -233,12 +235,11 @@ class Element {
 }
 
 class Player extends Element {
-  constructor(x, y, width, height, frames, imageSource1, imageSource2) {
+  constructor(x, y, width, height, frames) {
     super(x, y, width, height, frames);
-    this.image1 = new Image();
-    this.image1.src = imageSource1;
-    this.image2 = new Image();
-    this.image2.src = imageSource2;
+    this.lives = 3;
+    this.image = new Image();
+    this.image.src = this.frames[0][0];
     this.jumpState = true;
     this.xVelocity = 0;
     this.yVelocity = 0;
@@ -270,11 +271,24 @@ class Player extends Element {
   }
 
   animate() {
-    if ( this.jumpState ) this.image1.src = this.frames[4];
+    if ( this.chargedState ) {
+      if ( this.jumpState ) this.image.src = this.frames[1][4];
+      else {
+        if (this.xVelocity > 0.5 || this.xVelocity < -0.5 ) this.currentFrame++;
+        if ( this.currentFrame >= 4 ) this.currentFrame = 0;
+        this.image.src = this.frames[1][this.currentFrame];
+      }
+      if ( this.xVelocity === 0 ) this.image.src = this.frames[1][0];
+    } 
+
     else {
-      if (this.xVelocity > 0.5 || this.xVelocity < -0.5 ) this.currentFrame++;
-      if ( this.currentFrame >= 4 || this.xVelocity < 0 ) this.currentFrame = 0;
-      this.image1.src = this.frames[this.currentFrame];
+      if ( this.jumpState ) this.image.src = this.frames[0][4];
+      else {
+        if (this.xVelocity > 0.5 || this.xVelocity < -0.5 ) this.currentFrame++;
+        if ( this.currentFrame >= 4 ) this.currentFrame = 0;
+        this.image.src = this.frames[0][this.currentFrame];
+      }
+      if ( this.xVelocity === 0 ) this.image.src = this.frames[0][0];
     }
   }
 

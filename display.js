@@ -41,10 +41,10 @@ class Display {
   }
 
   drawPlayer(player, x, y, width, height) {
-    if (player.chargedState)
+    /*if (player.chargedState)
       this.buffer.drawImage(player.image2, Math.round(x), Math.round(y), width, height);
-    else 
-      this.buffer.drawImage(player.image1, Math.round(x), Math.round(y), width, height);
+    else */
+      this.buffer.drawImage(player.image, Math.round(x), Math.round(y), width, height);
   }
 
   fill(color) {

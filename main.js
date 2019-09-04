@@ -2,7 +2,8 @@ let control = new Control();
 let display = new Display(document.getElementById("canvas"));
 let level1 = new Level(1, 3);
 let levels = [level1];
-let frames = ["./images/gorduki_0.png","./images/gorduki_1.png","./images/gorduki_2.png","./images/gorduki_00.png","./images/gorduki_jump.png"];
+let frames = [["./images/gorduki_0.png","./images/gorduki_1.png","./images/gorduki_2.png","./images/gorduki_00.png","./images/gorduki_jump.png"],
+              ["./images/gordukip_0.png","./images/gordukip_1.png","./images/gordukip_2.png","./images/gordukip_00.png","./images/gordukip_jump.png"]];
 let game = new Game(frames, levels);
 
 window.addEventListener("load", function(event) {
@@ -34,13 +35,7 @@ window.addEventListener("load", function(event) {
     //display.fill(game.world.background_color); // Clear background to game's background color.
     display.drawBackground(game.world.player);
     display.drawMap(game.world.map, game.world.columns);
-    display.drawPlayer(
-      game.world.player,
-      game.world.player.xPosition,
-      game.world.player.yPosition,
-      game.world.player.width,
-      game.world.player.height
-    );
+    display.drawPlayer(game.world.player, game.world.player.xPosition, game.world.player.yPosition, game.world.player.width, game.world.player.height);
     for (let i = 0; i < game.world.player.attacks.length; i++) {
       display.drawImage(
         game.world.player.attacks[i].image,
