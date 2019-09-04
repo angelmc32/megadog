@@ -263,24 +263,16 @@ class Player extends Element {
 
   moveLeft() {
     this.xVelocity -= 0.5;
-    /*
-    if ( this.jumpState ) this.currentFrame = 4;
-    else if ( this.currentFrame >= 4 && !this.jumpState )  this.currentFrame = 0;
-    this.image1.src = this.frames[this.currentFrame];*/
   }
 
   moveRight() {
     this.xVelocity += 0.5;
-    /*
-    if ( this.jumpState ) this.currentFrame = 4;
-    else if ( this.currentFrame >= 4 && !this.jumpState ) this.currentFrame = 0;
-    this.image1.src = this.frames[this.currentFrame];*/
   }
 
   animate() {
     if ( this.jumpState ) this.image1.src = this.frames[4];
     else {
-      this.currentFrame++;
+      if (this.xVelocity > 0.5 || this.xVelocity < -0.5 ) this.currentFrame++;
       if ( this.currentFrame >= 4 || this.xVelocity < 0 ) this.currentFrame = 0;
       this.image1.src = this.frames[this.currentFrame];
     }
