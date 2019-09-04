@@ -1,8 +1,9 @@
 let control = new Control();
 let display = new Display(document.getElementById("canvas"));
-let level1 = new Level(1, 4);
+let level1 = new Level(1, 3);
 let levels = [level1];
-let game = new Game(levels);
+let frames = ["./images/gorduki_0.png","./images/gorduki_1.png","./images/gorduki_2.png","./images/gorduki_00.png","./images/gorduki_jump.png"];
+let game = new Game(frames, levels);
 
 window.addEventListener("load", function(event) {
   "use strict";
@@ -88,6 +89,7 @@ window.addEventListener("load", function(event) {
   display.tile_sheet.image.addEventListener(
     "load",
     function(event) {
+      
       resize();
 
       engine.start();

@@ -1,6 +1,6 @@
 class Game {
-  constructor(levels) {
-    this.world = new World(2, 0.9, levels);
+  constructor(frames, levels) {
+    this.world = new World(2, 0.9, frames, levels);
   }
 
   update() {
@@ -9,11 +9,11 @@ class Game {
 }
 
 class World {
-  constructor(gravity, friction, levels) {
+  constructor(gravity, friction, frames, levels) {
     this.collider = new Collider();
     this.gravity = gravity;
     this.friction = friction;
-    this.player = new Player(50, 50, 64, 64, "./images/gorduki_0.png", "./images/gordukip_0.png");
+    this.player = new Player(50, 50, 64, 64, frames, "./images/gorduki_0.png", "./images/gordukip_0.png");
     this.columns = 10;
     this.rows = 8;
     this.tile_size = 64;
@@ -76,7 +76,7 @@ class World {
   }
 
   advanceMap() {
-    if (this.player.xPosition + 65 > this.width ) {
+    if (this.player.xPosition + 65 > this.width && this.stage < this.levels[0].stages ) {
       this.player.xPosition = 0;
       this.stage++;
       this.map = this.maps[this.stage];
@@ -202,13 +202,15 @@ class Collider {
 }
 
 class Element {
-  constructor(x, y, width, height) {
+  constructor(x, y, width, height, frames) {
     this.xPosition = x;
     this.yPosition = y;
     this.xOldPosition = x;
     this.yOldPosition = y;
     this.width = width;
     this.height = height;
+    this.frames = frames;
+    this.currentFrame = 0;
   }
 
   getBottom()     { return this.yPosition + this.height }
@@ -231,8 +233,8 @@ class Element {
 }
 
 class Player extends Element {
-  constructor(x, y, width, height, imageSource1, imageSource2) {
-    super(x, y, width, height);
+  constructor(x, y, width, height, frames, imageSource1, imageSource2) {
+    super(x, y, width, height, frames);
     this.image1 = new Image();
     this.image1.src = imageSource1;
     this.image2 = new Image();
@@ -249,6 +251,8 @@ class Player extends Element {
   getRight()      { return this.xPosition + this.width - 18}
   getTop()        { return this.yPosition + 32 }
   getOldTop()     { return this.yOldPosition + 32 }
+  setBottom(y)    { this.yPosition = y - this.height }
+  setOldBottom(y) { this.yOldPosition = y - this.height }
 
   jump() {
     if (!this.jumpState) {
@@ -259,22 +263,32 @@ class Player extends Element {
 
   moveLeft() {
     this.xVelocity -= 0.5;
+    /*
+    if ( this.jumpState ) this.currentFrame = 4;
+    else if ( this.currentFrame >= 4 && !this.jumpState )  this.currentFrame = 0;
+    this.image1.src = this.frames[this.currentFrame];*/
   }
 
   moveRight() {
     this.xVelocity += 0.5;
+    /*
+    if ( this.jumpState ) this.currentFrame = 4;
+    else if ( this.currentFrame >= 4 && !this.jumpState ) this.currentFrame = 0;
+    this.image1.src = this.frames[this.currentFrame];*/
+  }
+
+  animate() {
+    if ( this.jumpState ) this.image1.src = this.frames[4];
+    else {
+      this.currentFrame++;
+      if ( this.currentFrame >= 4 || this.xVelocity < 0 ) this.currentFrame = 0;
+      this.image1.src = this.frames[this.currentFrame];
+    }
   }
 
   attack() {
     if (this.charge < 90 && !this.chargedState) {
-      let attack = new Attack(
-        "./images/32ball.png",
-        this.xPosition + 40,
-        this.yPosition + 24,
-        16,
-        16,
-        12
-      );
+      let attack = new Attack("./images/32ball.png",this.xPosition + 40,this.yPosition + 24,16,16,12);
       this.attacks.push(attack);
     } else {
       let attack = new Attack(
@@ -302,6 +316,7 @@ class Player extends Element {
   update() {
     this.xPosition += this.xVelocity;
     this.yPosition += this.yVelocity;
+    this.animate();
     this.updateAttacks();
     this.removeAttacks();
   }
@@ -325,3 +340,8 @@ class Attack {
   }
 }
 
+/*
+class Enemy extends Element {
+  constructor()
+}
+*/
