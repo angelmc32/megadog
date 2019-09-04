@@ -47,7 +47,8 @@ class World {
       element.yVelocity = 0;
     } else if (element.yPosition + element.height > this.height) {
       element.jumpState = false;
-      element.yPosition = this.height - element.height;
+      element.yPosition = 320;
+      element.xPosition = 16;
       element.yVelocity = 0;
     }
 
@@ -79,6 +80,26 @@ class World {
       this.player.xPosition = 0;
       this.stage++;
       this.map = this.maps[this.stage];
+      this.mapCollisionUpdate(this.map);
+    }
+  }
+
+  mapCollisionUpdate(array) {
+    for ( let index = 0 ; index < array.length ; index++ ) {
+      switch ( array[index] ) {
+        case 0: this.collision_map[index] = 9; break;
+        case 1: this.collision_map[index] = 1; break;
+        case 2: this.collision_map[index] = 3; break;
+        case 5: this.collision_map[index] = 8; break;
+        case 6: this.collision_map[index] = 15; break;
+        case 7: this.collision_map[index] = 2; break;
+        case 10: this.collision_map[index] = 12; break;
+        case 11: this.collision_map[index] = 4; break;
+        case 12: this.collision_map[index] = 6; break;
+        case 16: this.collision_map[index] = 1; break;
+        default: this.collision_map[index] = 0;
+
+      }
     }
   }
 
