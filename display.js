@@ -7,20 +7,8 @@ class Display {
   }
 
   drawBackground(player) {
-    /*
-    if ( player.xPosition + 65 > this.background.width) {
-      player.xPosition = 0
-      this.background.xCoordinate -= 515;
-      this.background.currentX = this.background.xCoordinate;
-      console.log("avanza");
-    }*/
     this.buffer.drawImage(this.background.image, this.background.currentX, this.background.yCoordinate, this.background.tile_size, 425, 0, 0, this.background.width, this.background.height);
-    /*
-    if ( this.background.currentX > this.background.width ) {
-      this.background.currentX  = this.background.xCoordinate;
-    }*/
-    this.buffer.drawImage(this.background.image, this.background.xCoordinate, this.background.yCoordinate, this.background.tile_size, 425, this.background.currentX+this.background.width, 0, this.background.width, this.background.height);
-    
+    this.buffer.drawImage(this.background.image, this.background.xCoordinate, this.background.yCoordinate, this.background.tile_size, 425, this.background.currentX+this.background.width, 0, this.background.width, this.background.height);   
   }
 
   drawMap(map, columns) {
@@ -36,7 +24,6 @@ class Display {
   }
 
   drawImage(image, x, y, width, height) {
-    //this.buffer.fillStyle = color;
     this.buffer.drawImage(image, Math.round(x), Math.round(y), width, height);
   }
 
@@ -45,6 +32,12 @@ class Display {
       this.buffer.drawImage(player.image2, Math.round(x), Math.round(y), width, height);
     else */
       this.buffer.drawImage(player.image, Math.round(x), Math.round(y), width, height);
+  }
+
+  drawEnemies(enemiesArray) {
+    for (let i = 0 ; i < enemiesArray.length ; i++) {
+      this.buffer.drawImage(enemiesArray[i].image, enemiesArray[i].xPosition, enemiesArray[i].yPosition, enemiesArray[i].width, enemiesArray[i].height);
+    }
   }
 
   fill(color) {

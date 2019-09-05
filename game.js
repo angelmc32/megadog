@@ -20,7 +20,8 @@ class World {
     this.levels = levels;
     this.maps = levels[0].maps;
     this.map = this.maps[0];
-    this.stage = 0;
+    this.currentLevel = 0;
+    this.currentStage = 0;
     this.collision_map = [0,0,0,0,0,0,0,0,0,0,
                           0,0,0,0,0,0,0,0,0,0,
                           0,0,0,0,0,0,0,0,0,1,
@@ -31,7 +32,21 @@ class World {
                           0,0,0,0,0,2,0,0,8,0];
     this.height = 512;
     this.width = 640;
-  } 
+    this.bag = new BagMinion(480, 256, 32, 32, frames);
+    this.enemies = [];
+  }
+
+  createEnemies() {
+    let newEnemy, x, y;
+    for( let enemyIndex = 0 ; enemyIndex < this.levels[this.currentLevel].enemiesMaps[this.currentLevel].length ; enemyIndex++ ) {
+      x = this.levels[this.currentLevel].enemiesMaps[this.currentStage][enemyIndex][1] * this.tile_size;
+      y = this.levels[this.currentLevel].enemiesMaps[this.currentStage][enemyIndex][2] * this.tile_size;
+      switch ( this.levels[this.currentLevel].enemiesMaps[this.currentStage][enemyIndex][0] ) {
+        case "bag": newEnemy = new BagMinion(x, y, 32, 32, frames);
+      }
+      this.enemies.push(newEnemy);
+    }
+  }
 
   collideElement(element) {
     if (element.xPosition < 0) {
@@ -77,10 +92,11 @@ class World {
   }
 
   advanceMap() {
-    if (this.player.xPosition + 65 > this.width && this.stage < this.levels[0].stages ) {
+    if (this.player.xPosition + 65 > this.width && this.currentStage < this.levels[this.currentLevel].stages ) {
       this.player.xPosition = 0;
-      this.stage++;
-      this.map = this.maps[this.stage];
+      this.currentStage++;
+      this.map = this.maps[this.currentStage];
+      this.createEnemies();
       this.mapCollisionUpdate(this.map);
     }
   }
@@ -105,8 +121,9 @@ class World {
   }
 
   update() {
+    for( let i = 0 ; i < this.enemies.length ; i++) this.enemies[i].update();
     this.player.yVelocity += this.gravity;
-    this.player.update();
+    this.player.update(this.enemies);
     this.player.xVelocity *= this.friction;
     this.player.yVelocity *= this.friction;
 
@@ -212,6 +229,8 @@ class Element {
     this.height = height;
     this.frames = frames;
     this.currentFrame = 0;
+    this.direction = "L";
+    this.speed = 1;
     this.lives = 1;
   }
 
@@ -232,6 +251,31 @@ class Element {
   setOldRight(x)  { this.xOldPosition = x - this.width }
   setOldTop(y)    { this.yOldPosition = y }
 
+  collide() {
+    if (this.xPosition < 0) {
+      this.xPosition = 0;
+      this.xVelocity = 0;
+      this.direction = "R";
+    } else if (this.xPosition + this.width > 640) {
+      this.xPosition = 640 - this.width;
+      this.xVelocity = 0;
+      this.direction = "L";
+    }
+  }
+
+  animate(){
+    this.currentFrame++;
+    if ( this.currentFrame >= this.frames.length ) this.currentFrame = 0;
+    this.image.src = this.frames[this.currentFrame];
+  }
+
+  update() {
+    if ( this.direction === "L") this.xPosition -= this.speed;
+    if ( this.direction === "R") this.xPosition += this.speed;
+    this.collide();
+    this.animate();
+  }
+
 }
 
 class Player extends Element {
@@ -247,6 +291,8 @@ class Player extends Element {
     this.chargedState = false;
     this.attacks = [];
     this.spriteHeight = height - 32;
+    this.invincible = false;
+    this.invincibleTime = 0;
   }
 
   getRight()      { return this.xPosition + this.width - 18}
@@ -292,19 +338,46 @@ class Player extends Element {
     }
   }
 
+  collisionCheck(elementsArray) {
+    let vectorX, vectorY, halfWidths, halfHeights, offsetX, offsetY;
+    
+    for (let i = 0; i < elementsArray.length; i++) {
+      vectorX = this.xPosition + this.width / 2 - (elementsArray[i].xPosition + elementsArray[i].width / 2);
+      vectorY = this.yPosition + this.height / 2 - (elementsArray[i].yPosition + elementsArray[i].height / 2);
+      halfWidths = this.width / 2 + elementsArray[i].width / 2;
+      halfHeights = this.height / 2 + elementsArray[i].height / 2;
+
+      if (Math.abs(vectorX) < halfWidths && Math.abs(vectorY) < halfHeights) {
+        offsetX = halfWidths - Math.abs(vectorX);
+        offsetY = halfHeights - Math.abs(vectorY);
+
+        if (offsetX >= offsetY) {
+          if ( vectorY > 0 && !this.invincible ) {
+            this.lives -= 1;
+            this.invincible = true;
+          } else if ( !this.invincible ) {
+            this.lives -= 1;
+            this.invincible = true;
+          }
+        } else {
+          if ( vectorX > 0 && !this.invincible ) {
+            this.lives -= 1;
+            this.invincible = true;
+          } else if ( !this.invincible ) {
+            this.lives -= 1;
+            this.invincible = true;
+          }
+        }
+      }
+    }
+  }
+
   attack() {
     if (this.charge < 90 && !this.chargedState) {
       let attack = new Attack("./images/32ball.png",this.xPosition + 40,this.yPosition + 24,16,16,12);
       this.attacks.push(attack);
     } else {
-      let attack = new Attack(
-        "./images/32ball.png",
-        this.xPosition + 16,
-        this.yPosition + 16,
-        48,
-        48,
-        15
-      );
+      let attack = new Attack("./images/32ball.png",this.xPosition + 16,this.yPosition + 16,48,48,15);
       this.attacks.push(attack);
       this.charge = 0;
       this.chargedState = false;
@@ -319,17 +392,26 @@ class Player extends Element {
     this.attacks = filtered;
   }
 
-  update() {
+  update(enemiesArray) {
+    if( this.invincible ) this.invincibleTime++;
+    if ( this.invincibleTime > 120 ) {
+      this.invincible = false;
+      this.invincibleTime = 0;
+    }
     this.xPosition += this.xVelocity;
     this.yPosition += this.yVelocity;
     this.animate();
-    this.updateAttacks();
+    this.collisionCheck(enemiesArray);
+    this.updateAttacks(enemiesArray );
     this.removeAttacks();
   }
 
-  updateAttacks() {
+  updateAttacks(enemiesArray) {
     for (let i = 0; i < this.attacks.length; i++) {
       this.attacks[i].xPosition += this.attacks[i].xSpeed;
+      if ( this.attacks[i].collisionCheck(enemiesArray) ) {
+        this.attacks.splice(i,1);
+      }
     }
   }
 }
@@ -344,10 +426,106 @@ class Attack {
     this.width = width;
     this.xSpeed = xSpeed;
   }
+  
+  collisionCheck(elementsArray) {
+    let vectorX, vectorY, halfWidths, halfHeights, offsetX, offsetY;
+    
+    for (let i = 0; i < elementsArray.length; i++) {
+      vectorX = this.xPosition + (this.width - 16) / 2 - (elementsArray[i].xPosition + elementsArray[i].width / 2);
+      vectorY = this.yPosition + this.height / 2 - (elementsArray[i].yPosition + elementsArray[i].height / 2);
+      halfWidths = this.width / 2 + elementsArray[i].width / 2;
+      halfHeights = this.height / 2 + elementsArray[i].height / 2;
+
+      if (Math.abs(vectorX) < halfWidths && Math.abs(vectorY) < halfHeights) {
+        offsetX = halfWidths - Math.abs(vectorX);
+        offsetY = halfHeights - Math.abs(vectorY);
+
+        if (offsetX >= offsetY) {
+          if ( vectorY > 0 ) {
+            elementsArray[i].lives--;
+            if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
+            return true;
+          } else {
+            elementsArray[i].lives--;
+            if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
+            return true;
+          }
+        } else {
+          if ( vectorX > 0 ) {
+            elementsArray[i].lives--;
+            if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
+            return true;
+          } else {
+            elementsArray[i].lives--;
+            if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
+            return true;
+          }
+        }
+      }
+    }
+  }
 }
 
-/*
+
 class Enemy extends Element {
-  constructor()
+  constructor(x, y, width, height, frames) {
+    super(x, y, width, height, frames);
+    this.image = new Image();
+    this.image.src = this.frames[0];
+    this.jumpState = true;
+    this.xVelocity = 0;
+    this.yVelocity = 0;
+    this.charge = 0;
+    this.chargedState = false;
+    this.attacks = [];
+    this.spriteHeight = height - 32;
+    this.direction = "L"
+  }
+/*
+  animate(){
+    this.currentFrame++;
+    if ( this.currentFrame >= this.frames.length ) this.currentFrame = 0;
+    this.image.src = this.frames[this.currentFrame];
+  }
+
+  update() {
+    if ( this.direction === "L") this.xPosition--;
+    if ( this.direction === "L") this.xPosition++;
+    this.collide();
+    this.animate();
+  }
+  */
 }
-*/
+
+class BagMinion extends Enemy {
+  constructor(x, y, width, height, frames) {
+    super(x, y, 32, 32, frames);
+    this.frames = ["./images/enemies/bag_0.png","./images/enemies/bag_0.png","./images/enemies/bag_1.png","./images/enemies/bag_1.png","./images/enemies/bag_2.png","./images/enemies/bag_2.png",
+                   "./images/enemies/bag_1.png","./images/enemies/bag_1.png","./images/enemies/bag_0.png","./images/enemies/bag_0.png","./images/enemies/bag_3.png","./images/enemies/bag_3.png",
+                   "./images/enemies/bag_4.png","./images/enemies/bag_4.png","./images/enemies/bag_3.png","./images/enemies/bag_3.png"];
+    this.image = new Image();
+    this.image.src = this.frames[0];
+    this.xVelocity = 0;
+    this.yVelocity = 0;
+    this.speed = 2;
+    this.attacks = [];
+    this.spriteHeight = height - 32;
+    this.lives = 2;
+  }
+
+}
+
+class GremlinMinion extends Enemy {
+  constructor(x, y, width, height) {
+    super(x, y, width, height);
+    this.image = new Image();
+    this.image.src = this.frames[0];
+    this.jumpState = true;
+    this.xVelocity = 0;
+    this.yVelocity = 0;
+    this.charge = 0;
+    this.chargedState = false;
+    this.attacks = [];
+    this.spriteHeight = height - 32;
+  }
+}
