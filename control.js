@@ -4,6 +4,9 @@ class Control {
     this.right = new ButtonInput();
     this.up = new ButtonInput();
     this.space = new ButtonInput();
+    this.one = new ButtonInput();
+    this.two = new ButtonInput();
+    this.three = new ButtonInput();
   }
 
   keyDownUp(type, keyCode) {
@@ -21,6 +24,15 @@ class Control {
         break;
       case 32:
         this.space.getInput(down);
+        break;
+      case 49:
+        this.one.getInput(down);
+        break;
+      case 50:
+        this.two.getInput(down);
+        break;
+      case 51:
+        this.three.getInput(down);
         break;
     }
   }

@@ -34,6 +34,7 @@ class World {
     this.width = 640;
     this.bag = new BagMinion(480, 256, 32, 32, frames);
     this.enemies = [];
+    this.items = [];
   }
 
   createEnemies() {
@@ -42,9 +43,23 @@ class World {
       x = this.levels[this.currentLevel].enemiesMaps[this.currentStage][enemyIndex][1] * this.tile_size;
       y = this.levels[this.currentLevel].enemiesMaps[this.currentStage][enemyIndex][2] * this.tile_size;
       switch ( this.levels[this.currentLevel].enemiesMaps[this.currentStage][enemyIndex][0] ) {
-        case "bag": newEnemy = new BagMinion(x, y, 32, 32, frames);
+        case "bag": newEnemy = new BagMinion(x, y, 32, 32, frames); break;
+        case "gremlin": newEnemy = new GremlinMinion(x, y, 64, 64, frames);break;
       }
       this.enemies.push(newEnemy);
+    }
+  }
+
+  createItems(){
+    let newItem, x, y;
+    for( let itemIndex = 0 ; itemIndex < this.levels[this.currentLevel].itemsMaps[this.currentLevel].length ; itemIndex++ ) {
+      x = this.levels[this.currentLevel].itemsMaps[this.currentStage][itemIndex][1] * this.tile_size;
+      y = this.levels[this.currentLevel].itemsMaps[this.currentStage][itemIndex][2] * this.tile_size;
+      switch ( this.levels[this.currentLevel].itemsMaps[this.currentStage][itemIndex][0] ) {
+        case "stick": newItem = new Item(x, y, 64, 64, frames, 8); break;
+        case "banana": newItem = new Item(x, y, 64, 64, frames, 9);break;
+      }
+      this.items.push(newItem);
     }
   }
 
@@ -92,12 +107,14 @@ class World {
   }
 
   advanceMap() {
-    if (this.player.xPosition + 65 > this.width && this.currentStage < this.levels[this.currentLevel].stages ) {
+    if (this.player.xPosition + 65 > this.width && this.currentStage < this.levels[this.currentLevel].stages 
+      /*&& this.enemies.length < 1*/) {
       this.player.xPosition = 0;
       this.currentStage++;
       this.map = this.maps[this.currentStage];
-      this.createEnemies();
       this.mapCollisionUpdate(this.map);
+      this.createEnemies();
+      this.createItems();
     }
   }
 
@@ -122,8 +139,9 @@ class World {
 
   update() {
     for( let i = 0 ; i < this.enemies.length ; i++) this.enemies[i].update();
+    for( let i = 0 ; i < this.items.length ; i++) this.items[i].update();
     this.player.yVelocity += this.gravity;
-    this.player.update(this.enemies);
+    this.player.update(this.enemies, this.items);
     this.player.xVelocity *= this.friction;
     this.player.yVelocity *= this.friction;
 
@@ -281,7 +299,11 @@ class Element {
 class Player extends Element {
   constructor(x, y, width, height, frames) {
     super(x, y, width, height, frames);
-    this.lives = 3;
+    this.frames = [["./images/gorduki_0.png","./images/gorduki_1.png","./images/gorduki_2.png","./images/gorduki_00.png","./images/gorduki_jump.png","./images/gorduki_sleep.png","./images/gorduki_over.png"],
+                   ["./images/gordukip_0.png","./images/gordukip_1.png","./images/gordukip_2.png","./images/gordukip_00.png","./images/gordukip_jump.png"],
+                   ["./images/gordukil_0.png","./images/gordukil_1.png","./images/gordukil_2.png","./images/gordukil_00.png","./images/gordukil_jump.png"],
+                   ["./images/gordukilp_0.png","./images/gordukilp_1.png","./images/gordukilp_2.png","./images/gordukilp_00.png","./images/gordukilp_jump.png"]];
+    this.lives = 5;
     this.image = new Image();
     this.image.src = this.frames[0][0];
     this.jumpState = true;
@@ -293,6 +315,12 @@ class Player extends Element {
     this.spriteHeight = height - 32;
     this.invincible = false;
     this.invincibleTime = 0;
+    this.attackType = 0;
+    this.direction = "R";
+    this.sticks = 0;
+    this.bananas = 0;
+    this.coins = 0;
+    this.points = 0;
   }
 
   getRight()      { return this.xPosition + this.width - 18}
@@ -310,31 +338,58 @@ class Player extends Element {
 
   moveLeft() {
     this.xVelocity -= 0.5;
+    this.direction = "L";
   }
 
   moveRight() {
     this.xVelocity += 0.5;
+    this.direction = "R";
   }
 
   animate() {
-    if ( this.chargedState ) {
-      if ( this.jumpState ) this.image.src = this.frames[1][4];
+    if ( this.lives <= 0 ) {this.image.src = this.frames[0][6]; this.xVelocity = 0; this.yVelocity = 0}
+    else if ( this.invincible ) this.image.src = this.frames[0][5];
+    else if ( this.direction === "R" ) {
+      if ( this.chargedState ) {
+        if ( this.jumpState ) this.image.src = this.frames[1][4];
+        else {
+          if (this.xVelocity > 0.5 || this.xVelocity < -0.5 ) this.currentFrame++;
+          if ( this.currentFrame >= 4 ) this.currentFrame = 0;
+          this.image.src = this.frames[1][this.currentFrame];
+        }
+        if ( this.xVelocity === 0 ) this.image.src = this.frames[1][0];
+      } 
+  
       else {
-        if (this.xVelocity > 0.5 || this.xVelocity < -0.5 ) this.currentFrame++;
-        if ( this.currentFrame >= 4 ) this.currentFrame = 0;
-        this.image.src = this.frames[1][this.currentFrame];
+        if ( this.jumpState ) this.image.src = this.frames[0][4];
+        else {
+          if (this.xVelocity > 0.5 || this.xVelocity < -0.5 ) this.currentFrame++;
+          if ( this.currentFrame >= 4 ) this.currentFrame = 0;
+          this.image.src = this.frames[0][this.currentFrame];
+        }
+        if ( this.xVelocity === 0 ) this.image.src = this.frames[0][0];
       }
-      if ( this.xVelocity === 0 ) this.image.src = this.frames[1][0];
-    } 
-
-    else {
-      if ( this.jumpState ) this.image.src = this.frames[0][4];
+    }
+    else if ( this.direction === "L" ) {
+      if ( this.chargedState ) {
+        if ( this.jumpState ) this.image.src = this.frames[3][4];
+        else {
+          if (this.xVelocity > 0.5 || this.xVelocity < -0.5 ) this.currentFrame++;
+          if ( this.currentFrame >= 4 ) this.currentFrame = 0;
+          this.image.src = this.frames[3][this.currentFrame];
+        }
+        if ( this.xVelocity === 0 ) this.image.src = this.frames[3][0];
+      } 
+  
       else {
-        if (this.xVelocity > 0.5 || this.xVelocity < -0.5 ) this.currentFrame++;
-        if ( this.currentFrame >= 4 ) this.currentFrame = 0;
-        this.image.src = this.frames[0][this.currentFrame];
+        if ( this.jumpState ) this.image.src = this.frames[2][4];
+        else {
+          if (this.xVelocity > 0.5 || this.xVelocity < -0.5 ) this.currentFrame++;
+          if ( this.currentFrame >= 4 ) this.currentFrame = 0;
+          this.image.src = this.frames[2][this.currentFrame];
+        }
+        if ( this.xVelocity === 0 ) this.image.src = this.frames[2][0];
       }
-      if ( this.xVelocity === 0 ) this.image.src = this.frames[0][0];
     }
   }
 
@@ -354,30 +409,65 @@ class Player extends Element {
         if (offsetX >= offsetY) {
           if ( vectorY > 0 && !this.invincible ) {
             this.lives -= 1;
+            this.points -= 500;
             this.invincible = true;
           } else if ( !this.invincible ) {
             this.lives -= 1;
             this.invincible = true;
+            this.points -= 500;
           }
         } else {
           if ( vectorX > 0 && !this.invincible ) {
             this.lives -= 1;
             this.invincible = true;
+            this.points -= 500;
           } else if ( !this.invincible ) {
             this.lives -= 1;
             this.invincible = true;
+            this.points -= 500;
           }
         }
       }
     }
   }
 
+  itemsCheck(elementsArray) {
+    let vectorX, vectorY, halfWidths, halfHeights, offsetX, offsetY;
+    
+    for (let i = 0; i < elementsArray.length; i++) {
+      vectorX = this.xPosition + this.width / 2 - (elementsArray[i].xPosition + elementsArray[i].width / 2);
+      vectorY = this.yPosition + this.height / 2 - (elementsArray[i].yPosition + elementsArray[i].height / 2);
+      halfWidths = this.width / 2 + elementsArray[i].width / 2;
+      halfHeights = this.height / 2 + elementsArray[i].height / 2;
+
+      if (Math.abs(vectorX) < halfWidths && Math.abs(vectorY) < halfHeights) {
+        offsetX = halfWidths - Math.abs(vectorX);
+        offsetY = halfHeights - Math.abs(vectorY);
+
+        switch ( elementsArray[i].location ) {
+          case 3: this.points += 1000; elementsArray.splice(i, 1); break;
+          case 8: this.points += 1000; elementsArray.splice(i, 1); break;
+          case 9: this.points += 1000; elementsArray.splice(i, 1); break;
+        }
+      }
+    }
+  }
+
   attack() {
+    let imageSource = "./images/32ball.png"; 
+    switch(this.attackType) {
+      case 0: imageSource = "./images/32ball.png"; break;
+      case 1: imageSource = "./images/32water.png"; break;
+      case 2: imageSource = "./images/32fire.png"; break;
+      default: imageSource = "./images/32ball.png";
+    }
+    
     if (this.charge < 90 && !this.chargedState) {
-      let attack = new Attack("./images/32ball.png",this.xPosition + 40,this.yPosition + 24,16,16,12);
+      let attack = new Attack(imageSource,this.xPosition + 40,this.yPosition + 24,16,16,12,this.attackType,this.direction);
       this.attacks.push(attack);
     } else {
-      let attack = new Attack("./images/32ball.png",this.xPosition + 16,this.yPosition + 16,48,48,15);
+      let attack = new Attack(imageSource,this.xPosition + 16,this.yPosition + 16,48,48,15,this.attackType,this.direction);
+      attack.power = 3;
       this.attacks.push(attack);
       this.charge = 0;
       this.chargedState = false;
@@ -387,12 +477,13 @@ class Player extends Element {
 
   removeAttacks() {
     let filtered = this.attacks.filter(function(element, index, array) {
-      return element.xPosition < 1024;
+      if ( element.xPosition < 640 && element.xPosition > -32 )
+      return element;
     });
     this.attacks = filtered;
   }
 
-  update(enemiesArray) {
+  update(enemiesArray, itemsArray) {
     if( this.invincible ) this.invincibleTime++;
     if ( this.invincibleTime > 120 ) {
       this.invincible = false;
@@ -402,22 +493,25 @@ class Player extends Element {
     this.yPosition += this.yVelocity;
     this.animate();
     this.collisionCheck(enemiesArray);
+    this.itemsCheck(itemsArray);
     this.updateAttacks(enemiesArray );
     this.removeAttacks();
   }
 
   updateAttacks(enemiesArray) {
     for (let i = 0; i < this.attacks.length; i++) {
-      this.attacks[i].xPosition += this.attacks[i].xSpeed;
+      if ( this.attacks[i].direction === "R" ) this.attacks[i].xPosition += this.attacks[i].xSpeed;
+      else if ( this.attacks[i].direction === "L" ) this.attacks[i].xPosition -= this.attacks[i].xSpeed;
       if ( this.attacks[i].collisionCheck(enemiesArray) ) {
         this.attacks.splice(i,1);
+        this.points += 100;
       }
     }
   }
 }
 
 class Attack {
-  constructor(imageSource, x, y, height, width, xSpeed) {
+  constructor(imageSource, x, y, height, width, xSpeed, attackType, direction) {
     this.image = new Image();
     this.image.src = imageSource;
     this.xPosition = x;
@@ -425,6 +519,9 @@ class Attack {
     this.height = height;
     this.width = width;
     this.xSpeed = xSpeed;
+    this.power = 1;
+    this.attackType = attackType;
+    this.direction = direction;
   }
   
   collisionCheck(elementsArray) {
@@ -442,21 +539,21 @@ class Attack {
 
         if (offsetX >= offsetY) {
           if ( vectorY > 0 ) {
-            elementsArray[i].lives--;
+            elementsArray[i].lives -= this.power;
             if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
             return true;
           } else {
-            elementsArray[i].lives--;
+            elementsArray[i].lives -= this.power;
             if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
             return true;
           }
         } else {
           if ( vectorX > 0 ) {
-            elementsArray[i].lives--;
+            elementsArray[i].lives -= this.power;
             if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
             return true;
           } else {
-            elementsArray[i].lives--;
+            elementsArray[i].lives -= this.power;
             if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
             return true;
           }
@@ -481,20 +578,6 @@ class Enemy extends Element {
     this.spriteHeight = height - 32;
     this.direction = "L"
   }
-/*
-  animate(){
-    this.currentFrame++;
-    if ( this.currentFrame >= this.frames.length ) this.currentFrame = 0;
-    this.image.src = this.frames[this.currentFrame];
-  }
-
-  update() {
-    if ( this.direction === "L") this.xPosition--;
-    if ( this.direction === "L") this.xPosition++;
-    this.collide();
-    this.animate();
-  }
-  */
 }
 
 class BagMinion extends Enemy {
@@ -517,15 +600,70 @@ class BagMinion extends Enemy {
 
 class GremlinMinion extends Enemy {
   constructor(x, y, width, height) {
-    super(x, y, width, height);
+    super(x, y, width, height, frames);
+    this.frames = ["./images/enemies/gremlin_0.png","./images/enemies/gremlin_0.png","./images/enemies/gremlin_1.png","./images/enemies/gremlin_1.png","./images/enemies/gremlin_2.png","./images/enemies/gremlin_2.png",
+                   "./images/enemies/gremlin_00.png","./images/enemies/gremlin_00.png","./images/enemies/gremlin_01.png","./images/enemies/gremlin_01.png","./images/enemies/gremlin_02.png","./images/enemies/gremlin_02.png",
+                   "./images/enemies/gremlin_00.png","./images/enemies/gremlin_00.png","./images/enemies/gremlin_1.png","./images/enemies/gremlin_2.png"];
     this.image = new Image();
     this.image.src = this.frames[0];
-    this.jumpState = true;
     this.xVelocity = 0;
     this.yVelocity = 0;
-    this.charge = 0;
-    this.chargedState = false;
+    this.speed = 64;
     this.attacks = [];
-    this.spriteHeight = height - 32;
+    this.lives = 5;
+  }
+
+  update() {
+    if ( this.direction === "L") {
+      this.xPosition--;
+      this.speed--;
+    }
+    if ( this.direction === "R") {
+      this.xPosition++;
+      this.speed--;
+    }
+    this.collide();
+    this.animate();
+  }
+
+  collide() {
+    if (this.speed <= 0) {
+      if ( this.direction === "L" ) this.direction = "R";
+      else if ( this.direction === "R" ) this.direction = "L";
+      this.speed = 64;
+      this.xVelocity = 0;
+    }
+  }
+}
+
+class Item extends Element {
+  constructor(x, y, width, height, frames, type) {
+    super(x, y, width, height, frames);
+    this.image = new Image();
+    this.image.src = "./images/world_sprites/map_tiles.png";
+    this.speed = 24;
+    this.direction = "L";
+    this.location = type;
+  }
+
+  update() {
+    if ( this.direction === "L") {
+      this.yPosition -= 0.2 ;
+      this.speed--;
+    }
+    if ( this.direction === "R") {
+      this.yPosition += 0.2;
+      this.speed--;
+    }
+    this.collide();
+  }
+
+  collide() {
+    if (this.speed <= 0) {
+      if ( this.direction === "L" ) this.direction = "R";
+      else if ( this.direction === "R" ) this.direction = "L";
+      this.speed = 16;
+      this.yVelocity = 0;
+    }
   }
 }

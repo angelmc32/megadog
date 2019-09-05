@@ -6,6 +6,7 @@ let frames = [["./images/gorduki_0.png","./images/gorduki_1.png","./images/gordu
               ["./images/gordukip_0.png","./images/gordukip_1.png","./images/gordukip_2.png","./images/gordukip_00.png","./images/gordukip_jump.png"]];
 let game = new Game(frames, levels);
 game.world.createEnemies();
+game.world.createItems();
 
 window.addEventListener("load", function(event) {
   "use strict";
@@ -35,8 +36,9 @@ window.addEventListener("load", function(event) {
   let render = function() {
     display.drawBackground(game.world.player);
     display.drawMap(game.world.map, game.world.columns);
-    display.drawPlayer(game.world.player, game.world.player.xPosition, game.world.player.yPosition, game.world.player.width, game.world.player.height);
     display.drawEnemies(game.world.enemies);
+    display.drawItems(game.world.items);
+    display.drawPlayer(game.world.player, game.world.player.xPosition, game.world.player.yPosition, game.world.player.width, game.world.player.height);
     for (let i = 0; i < game.world.player.attacks.length; i++) {
       display.drawImage(
         game.world.player.attacks[i].image,
@@ -72,6 +74,16 @@ window.addEventListener("load", function(event) {
     if (!control.space.down) {
       if (game.world.player.charge > 5) game.world.player.attack();
       game.world.player.charge = 0;
+    }
+
+    if ( control.one.active ) {
+      game.world.player.attackType = 0;
+    }
+    if ( control.two.active ) {
+      game.world.player.attackType = 1;
+    }
+    if ( control.three.active ) {
+      game.world.player.attackType = 2;
     }
 
     game.update();
