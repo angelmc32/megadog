@@ -149,7 +149,29 @@ window.addEventListener("load", function(event) {
   game.world.createItems();
   game.world.mapCollisionUpdate(game.world.maps[0]);
 
+  let button = document.getElementById("start-btn");
+
   let engine = new Engine(1000 / 50, render, update);
+
+  asset_manager.downloadImages(() => {
+    display.tile_sheet.image.src = "./images/world_sprites/map_tiles.png";
+    display.background.image.src = "./images/world_sprites/background.png";
+  });
+
+  button.onclick = function(){
+    console.log("click");
+    document.getElementById("section1").style.display = "none";
+    document.getElementById("section2").style.display = "none";
+    document.getElementById("section3").style.display = "none";
+    document.getElementById("section4").style.display = "none";
+    document.getElementById("section4").style.display = "none";
+
+    document.getElementById("canvas-container").style.removeProperty("display");
+    
+    resize();
+  
+    engine.start();
+    };
 
   // INITIALIZE
 
@@ -158,7 +180,7 @@ window.addEventListener("load", function(event) {
   display.buffer.imageSmoothingEnabled = false;
 
 
-
+/*
   asset_manager.downloadImages(() => {
     display.tile_sheet.image.src = "./images/world_sprites/map_tiles.png";
     display.background.image.src = "./images/world_sprites/background.png";
@@ -191,4 +213,4 @@ window.addEventListener("load", function(event) {
   //resize();
 
   //engine.start();
-});
+  });
