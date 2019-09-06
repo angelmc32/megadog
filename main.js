@@ -1,15 +1,17 @@
-let control = new Control();
-let display = new Display(document.getElementById("canvas"));
-let level1 = new Level(1, 3);
-let levels = [level1];
-let frames = [["./images/gorduki_0.png","./images/gorduki_1.png","./images/gorduki_2.png","./images/gorduki_00.png","./images/gorduki_jump.png"],
-              ["./images/gordukip_0.png","./images/gordukip_1.png","./images/gordukip_2.png","./images/gordukip_00.png","./images/gordukip_jump.png"]];
-let game = new Game(frames, levels);
-game.world.createEnemies();
-game.world.createItems();
+
 
 window.addEventListener("load", function(event) {
   "use strict";
+
+let control = new Control();
+let display = new Display(document.getElementById("canvas"));
+let level1 = new Level(1);
+let levels = [level1];
+let frames = [];
+let game = new Game(frames, levels);
+game.world.createEnemies();
+game.world.createItems();
+game.world.mapCollisionUpdate(game.world.maps[0]);
 
   let keyDownUp = function(event) {
     control.keyDownUp(event.type, event.keyCode);

@@ -22,24 +22,17 @@ class World {
     this.map = this.maps[0];
     this.currentLevel = 0;
     this.currentStage = 0;
-    this.collision_map = [0,0,0,0,0,0,0,0,0,0,
-                          0,0,0,0,0,0,0,0,0,0,
-                          0,0,0,0,0,0,0,0,0,1,
-                          0,0,0,0,0,0,0,0,0,0,
-                          0,0,0,0,0,0,1,0,0,0,
-                          0,0,0,0,0,0,0,0,0,0,
-                          1,1,1,1,1,3,0,0,9,1,
-                          0,0,0,0,0,2,0,0,8,0];
+    this.collision_map = [];
     this.height = 512;
     this.width = 640;
-    this.bag = new BagMinion(480, 256, 32, 32, frames);
+    //this.bag = new BagMinion(480, 256, 32, 32, frames);
     this.enemies = [];
     this.items = [];
   }
 
   createEnemies() {
     let newEnemy, x, y;
-    for( let enemyIndex = 0 ; enemyIndex < this.levels[this.currentLevel].enemiesMaps[this.currentLevel].length ; enemyIndex++ ) {
+    for( let enemyIndex = 0 ; enemyIndex < this.levels[this.currentLevel].enemiesMaps[this.currentStage].length ; enemyIndex++ ) {
       x = this.levels[this.currentLevel].enemiesMaps[this.currentStage][enemyIndex][1] * this.tile_size;
       y = this.levels[this.currentLevel].enemiesMaps[this.currentStage][enemyIndex][2] * this.tile_size;
       switch ( this.levels[this.currentLevel].enemiesMaps[this.currentStage][enemyIndex][0] ) {
@@ -52,7 +45,7 @@ class World {
 
   createItems(){
     let newItem, x, y;
-    for( let itemIndex = 0 ; itemIndex < this.levels[this.currentLevel].itemsMaps[this.currentLevel].length ; itemIndex++ ) {
+    for( let itemIndex = 0 ; itemIndex < this.levels[this.currentLevel].itemsMaps[this.currentStage].length ; itemIndex++ ) {
       x = this.levels[this.currentLevel].itemsMaps[this.currentStage][itemIndex][1] * this.tile_size;
       y = this.levels[this.currentLevel].itemsMaps[this.currentStage][itemIndex][2] * this.tile_size;
       switch ( this.levels[this.currentLevel].itemsMaps[this.currentStage][itemIndex][0] ) {
@@ -81,6 +74,7 @@ class World {
       element.xPosition = 16;
       element.yVelocity = 0;
       element.lives -= 1;
+      element.invincible = true;
     }
 
     let bottom, left, right, top, value;
@@ -502,9 +496,9 @@ class Player extends Element {
     for (let i = 0; i < this.attacks.length; i++) {
       if ( this.attacks[i].direction === "R" ) this.attacks[i].xPosition += this.attacks[i].xSpeed;
       else if ( this.attacks[i].direction === "L" ) this.attacks[i].xPosition -= this.attacks[i].xSpeed;
-      if ( this.attacks[i].collisionCheck(enemiesArray) ) {
+      if ( this.attacks[i].collisionCheck(this.points, enemiesArray) ) {
         this.attacks.splice(i,1);
-        this.points += 100;
+        //this.points += 100;
       }
     }
   }
@@ -524,7 +518,7 @@ class Attack {
     this.direction = direction;
   }
   
-  collisionCheck(elementsArray) {
+  collisionCheck(playerPoints, elementsArray) {
     let vectorX, vectorY, halfWidths, halfHeights, offsetX, offsetY;
     
     for (let i = 0; i < elementsArray.length; i++) {
@@ -537,38 +531,46 @@ class Attack {
         offsetX = halfWidths - Math.abs(vectorX);
         offsetY = halfHeights - Math.abs(vectorY);
 
-        if (offsetX >= offsetY) {
-          if ( vectorY > 0 ) {
-            elementsArray[i].lives -= this.power;
-            if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
-            return true;
-          } else {
-            elementsArray[i].lives -= this.power;
-            if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
-            return true;
-          }
-        } else {
-          if ( vectorX > 0 ) {
-            elementsArray[i].lives -= this.power;
-            if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
-            return true;
-          } else {
-            elementsArray[i].lives -= this.power;
-            if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
-            return true;
-          }
+        if ( this.attackType === elementsArray[i].weakness ) {
+          elementsArray[i].lives -= this.power;
+          elementsArray[i].height -= this.power;
+          elementsArray[i].width -= this.power;
+          elementsArray[i].yPosition += this.power;
+          playerPoints += 100;
+          if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
+          return true;
+        }
+
+        if( this.attackType === elementsArray[i].immunity ) {
+          elementsArray[i].lives += this.power;
+          elementsArray[i].height += this.power;
+          elementsArray[i].width += this.power;
+          elementsArray[i].yPosition -= this.power;
+          playerPoints -= 100;
+          if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
+          return true;
+        }
+
+        if( this.attackType === elementsArray[i].strength ) {
+          elementsArray[i].lives += (this.power * 2);
+          elementsArray[i].height += (this.power * 2);
+          elementsArray[i].width += (this.power * 2);
+          elementsArray[i].yPosition -= (this.power * 2);
+          playerPoints -= 200;
+          if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
+          return true;
         }
       }
+      
     }
+    return false;
   }
 }
-
 
 class Enemy extends Element {
   constructor(x, y, width, height, frames) {
     super(x, y, width, height, frames);
     this.image = new Image();
-    this.image.src = this.frames[0];
     this.jumpState = true;
     this.xVelocity = 0;
     this.yVelocity = 0;
@@ -594,6 +596,9 @@ class BagMinion extends Enemy {
     this.attacks = [];
     this.spriteHeight = height - 32;
     this.lives = 2;
+    this.weakness = 1;
+    this.strength = 2;
+    this.immunity = 0;
   }
 
 }
@@ -608,9 +613,12 @@ class GremlinMinion extends Enemy {
     this.image.src = this.frames[0];
     this.xVelocity = 0;
     this.yVelocity = 0;
-    this.speed = 64;
+    this.speed = 32;
     this.attacks = [];
     this.lives = 5;
+    this.weakness = 2;
+    this.strength = 1;
+    this.immunity = 0;
   }
 
   update() {
