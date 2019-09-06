@@ -112,7 +112,7 @@ window.addEventListener("load", function(event) {
     if (control.space.down) {
       if (!game.world.player.chargedState) {
         game.world.player.charge++;
-        if (game.world.player.charge > 89)
+        if (game.world.player.charge > 49)
           game.world.player.chargedState = true;
       }
     }
@@ -157,10 +157,14 @@ window.addEventListener("load", function(event) {
   display.buffer.canvas.width = game.world.width;
   display.buffer.imageSmoothingEnabled = false;
 
+
+
   asset_manager.downloadImages(() => {
     display.tile_sheet.image.src = "./images/world_sprites/map_tiles.png";
     display.background.image.src = "./images/world_sprites/background.png";
     
+    
+
     resize();
 
     engine.start();

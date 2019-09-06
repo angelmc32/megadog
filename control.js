@@ -7,6 +7,7 @@ class Control {
     this.one = new ButtonInput();
     this.two = new ButtonInput();
     this.three = new ButtonInput();
+    this.pause = new ButtonInput();
   }
 
   keyDownUp(type, keyCode) {
@@ -33,6 +34,12 @@ class Control {
         break;
       case 51:
         this.three.getInput(down);
+        break;
+      case 13:
+        this.pause.getInput(down);
+        break;
+      case 16:
+        this.pause.getInput(down);
         break;
     }
   }

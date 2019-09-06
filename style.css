@@ -1,7 +1,73 @@
+*{
+  padding: 0;
+  margin: 0;
+  font-size: calc(0.8em + 1vw);
+}
+
 body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  font-family: 'Lexend Deca', sans-serif;
+  background-color: navy;
+  scroll-snap-type: y mandatory;
+}
+
+.section1 {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100%;
+  scroll-snap-align: start;
+}
+
+.header1 {
+  font-size: calc(0.8em + 5vw);
+}
+
+.header2 {
+  font-family: 'Indie Flower', cursive;
+  font-size: calc(0.8em + 3vw);
+}
+
+.section2 {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100%;
+  scroll-snap-align: start;
+}
+
+.section3 {
+  display: flex;
+  flex-wrap: wrap;
+  height: 100vh;
+  width: 100%;
+  font-size: calc(0.5vw);
+  scroll-snap-align: start;
+}
+
+.section3 .box {
+  width: 50%;
+  height: 50%;
+  text-align: center;
+}
+
+.image-container {
+  height: 70%;
+}
+
+.text-container {
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 0 5%;
 }
 
 #canvas-container {
@@ -11,4 +77,9 @@ body {
   height: 100vh;
   width: 100%;
   padding: 10%;
+  display: none;
+}
+
+#canvas {
+  display: none;
 }
