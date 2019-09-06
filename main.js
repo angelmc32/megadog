@@ -3,15 +3,60 @@
 window.addEventListener("load", function(event) {
   "use strict";
 
-let control = new Control();
-let display = new Display(document.getElementById("canvas"));
-let level1 = new Level(1);
-let levels = [level1];
-let frames = [];
-let game = new Game(frames, levels);
-game.world.createEnemies();
-game.world.createItems();
-game.world.mapCollisionUpdate(game.world.maps[0]);
+  // CLASSES
+  class AssetManager {
+    constructor() {
+      this.successCount = 0;
+      this.errorCount = 0;
+      this.imagesCache = {};
+      this.imagesQueue = ["./images/world_sprites/map_tiles.png","./images/world_sprites/background.png", "./images/gorduki_0.png","./images/gorduki_1.png","./images/gorduki_2.png","./images/gorduki_00.png","./images/gorduki_jump.png","./images/gorduki_sleep.png","./images/gorduki_over.png","./images/gordukip_0.png","./images/gordukip_1.png","./images/gordukip_2.png","./images/gordukip_00.png","./images/gordukip_jump.png","./images/gordukil_0.png","./images/gordukil_1.png","./images/gordukil_2.png","./images/gordukil_00.png","./images/gordukil_jump.png","./images/gordukilp_0.png","./images/gordukilp_1.png","./images/gordukilp_2.png","./images/gordukilp_00.png","./images/gordukilp_jump.png","./images/32ball.png","./images/32water.png","./images/32fire.png","./images/enemies/bag_0.png","./images/enemies/bag_1.png","./images/enemies/bag_2.png","./images/enemies/bag_3.png","./images/enemies/bag_4.png","./images/enemies/gremlin_0.png","./images/enemies/gremlin_1.png","./images/enemies/gremlin_2.png","./images/enemies/gremlin_00.png","./images/enemies/gremlin_01.png","./images/enemies/gremlin_02.png"];
+      this.soundsCache = {};
+      this.soundsQueue = [];
+    }
+
+    imagesQueuePaths(path) {
+      this.imagesQueue.push(path);
+    }
+
+    soundsQueuePaths(path) {
+      this.soundsQueue.push(path);
+    }
+
+    downloadImages(downloadCallback) {
+      
+      if ( this.imagesQueue.length === 0 ) downloadCallback();
+
+      for ( let i = 0 ; i < this.imagesQueue.length ; i++ ) {
+        let path = this.imagesQueue[i];
+        let img = new Image();
+        img.addEventListener("load", () => {
+          this.successCount++;
+          if ( this.isDone() ) {
+            downloadCallback();
+          }
+        }, false);
+        img.addEventListener("error", () => {
+          this.errorCount++;
+          if ( this.isDone() ) {
+            downloadCallback();
+          }
+        }, false);
+        img.src = path;
+        this.imagesCache[path] = img;
+      }
+    }
+
+    isDone() {
+      let totalAssets = this.imagesQueue.length + this.soundsQueue.length;
+      return ( totalAssets === this.successCount + this.errorCount )
+    }
+
+    getImageAsset(path) {
+      return this.imagesCache[path];
+    }
+  }
+
+  // FUNCTIONS
 
   let keyDownUp = function(event) {
     control.keyDownUp(event.type, event.keyCode);
@@ -91,11 +136,36 @@ game.world.mapCollisionUpdate(game.world.maps[0]);
     game.update();
   };
 
+  // OBJECTS
+
+  let asset_manager = new AssetManager();
+  let control = new Control();
+  let display = new Display(document.getElementById("canvas"));
+  let level1 = new Level(1);
+  let levels = [level1];
+  let frames = [];
+  let game = new Game(frames, levels);
+  game.world.createEnemies();
+  game.world.createItems();
+  game.world.mapCollisionUpdate(game.world.maps[0]);
+
   let engine = new Engine(1000 / 50, render, update);
+
+  // INITIALIZE
 
   display.buffer.canvas.height = game.world.height;
   display.buffer.canvas.width = game.world.width;
+  display.buffer.imageSmoothingEnabled = false;
 
+  asset_manager.downloadImages(() => {
+    display.tile_sheet.image.src = "./images/world_sprites/map_tiles.png";
+    display.background.image.src = "./images/world_sprites/background.png";
+    
+    resize();
+
+    engine.start();
+  })
+/*
   display.tile_sheet.image.addEventListener(
     "load",
     function(event) {
@@ -109,12 +179,12 @@ game.world.mapCollisionUpdate(game.world.maps[0]);
 
   display.tile_sheet.image.src = "./images/world_sprites/map_tiles.png";
   display.background.image.src = "./images/world_sprites/background.png";
-
+*/
   window.addEventListener("keydown", keyDownUp);
   window.addEventListener("keyup", keyDownUp);
   window.addEventListener("resize", resize);
 
-  resize();
+  //resize();
 
-  engine.start();
+  //engine.start();
 });
