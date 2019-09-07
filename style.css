@@ -45,6 +45,38 @@ body {
   scroll-snap-align: start;
 }
 
+#section2 .image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 30%;
+  width: 100%;
+}
+
+#section2 .image-container img {
+  width: 15%;
+}
+
+#section2 .image-container2 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 30%;
+  width: 100%;
+}
+
+#section2 .image-container2 img{
+  width: 20%;
+}
+
+#section2 .text-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 20%;
+  padding: 0 5%;
+}
+
 #section3 {
   display: flex;
   flex-wrap: wrap;
@@ -61,7 +93,14 @@ body {
 }
 
 #section3 .image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   height: 70%;
+}
+
+#section3 .image-container img {
+  width: 60%;
 }
 
 #section3 .text-container {

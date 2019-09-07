@@ -4,6 +4,8 @@ class Display {
     this.context = canvas.getContext("2d");
     this.tile_sheet = new TileSheet(64, 5, 5);
     this.background = new Background(510, 5, 7, 640, 532, 1548, 1332);
+    this.win = new ImageWinLose("./images/world_sprites/win.png",450,300);
+    this.lose = new ImageWinLose("./images/world_sprites/lose.png",320,320);
   }
 
   drawBackground(player) {
@@ -60,7 +62,14 @@ class Display {
     this.buffer.font = "16px Arial";
     this.buffer.strokeText(`p o i n t s : ${points}`, 448,22);
     this.buffer.drawImage(player.image, Math.round(x), Math.round(y), width, height);
-    if (player.lives <= 0) this.buffer.strokeText(`g a m e  o v e r`, 16,22);
+    if (player.lives <= 0) {
+      this.buffer.strokeText(`g a m e  o v e r`, 16,22);
+      this.buffer.drawImage(this.lose.image,160,16,320,320);
+      return false;
+    }
+    if ( player.winCondition ) {
+      this.buffer.drawImage(this.win.image, 100,32, 450, 300);
+    }
   }
 
   drawEnemies(enemiesArray) {
@@ -100,6 +109,15 @@ class Display {
       this.context.canvas.width = height / heightWidthRatio;
     }
     this.context.imageSmoothingEnabled = false;
+  }
+}
+
+class ImageWinLose {
+  constructor(imageSource, width, height){
+    this.width = width;
+    this.height = height;
+    this.image = new Image();
+    this.image.src = imageSource;
   }
 }
 

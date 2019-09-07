@@ -4,6 +4,25 @@ window.addEventListener("load", function(event) {
   "use strict";
 
   // CLASSES
+
+  class Sound {
+    constructor(path) {
+      this.sound = document.createElement("audio");
+      this.sound.src = path;
+      this.sound.loop = true;
+      this.sound.setAttribute("preload", "auto");
+      this.sound.setAttribute("controls", "none");
+      this.sound.style.display = "none";
+    }
+
+    play() {
+    this.sound.play();
+    }
+    stop() {
+    this.sound.pause();
+    }
+  }
+
   class AssetManager {
     constructor() {
       this.successCount = 0;
@@ -145,6 +164,7 @@ window.addEventListener("load", function(event) {
   let levels = [level1];
   let frames = [];
   let game = new Game(frames, levels);
+  let worldMusic = new Sound("./sounds/05 Vanilla Dome.mp3");
   game.world.createEnemies();
   game.world.createItems();
   game.world.mapCollisionUpdate(game.world.maps[0]);
@@ -157,6 +177,7 @@ window.addEventListener("load", function(event) {
     display.tile_sheet.image.src = "./images/world_sprites/map_tiles.png";
     display.background.image.src = "./images/world_sprites/background.png";
   });
+  
 
   button.onclick = function(){
     console.log("click");
@@ -170,7 +191,9 @@ window.addEventListener("load", function(event) {
     
     resize();
   
-    engine.start();
+    engine.start(worldMusic);
+    worldMusic.play();
+
     };
 
   // INITIALIZE

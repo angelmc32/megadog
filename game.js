@@ -38,6 +38,7 @@ class World {
       switch ( this.levels[this.currentLevel].enemiesMaps[this.currentStage][enemyIndex][0] ) {
         case "bag": newEnemy = new BagMinion(x, y, 32, 32, frames); break;
         case "gremlin": newEnemy = new GremlinMinion(x, y, 64, 64, frames);break;
+        case "kingGremlin": newEnemy = new KingGremlin(x, y, 192, 256, frames);break;
       }
       this.enemies.push(newEnemy);
     }
@@ -51,6 +52,8 @@ class World {
       switch ( this.levels[this.currentLevel].itemsMaps[this.currentStage][itemIndex][0] ) {
         case "stick": newItem = new Item(x, y, 64, 64, frames, 8); break;
         case "banana": newItem = new Item(x, y, 64, 64, frames, 9);break;
+        case "wubba": newItem = new Item(x, y, 64, 64, frames, 14);break;
+        case "finalWubba": newItem = new Item(x, y, 64, 64, frames, 19);break;
       }
       this.items.push(newItem);
     }
@@ -102,8 +105,10 @@ class World {
 
   advanceMap() {
     if (this.player.xPosition + 65 > this.width && this.currentStage < this.levels[this.currentLevel].stages 
+      && this.player.goalAccomplished
       /*&& this.enemies.length < 1*/) {
       this.player.xPosition = 0;
+      this.player.goalAccomplished = false;
       this.currentStage++;
       this.map = this.maps[this.currentStage];
       this.mapCollisionUpdate(this.map);
@@ -297,7 +302,7 @@ class Player extends Element {
                    ["./images/gordukip_0.png","./images/gordukip_1.png","./images/gordukip_2.png","./images/gordukip_00.png","./images/gordukip_jump.png"],
                    ["./images/gordukil_0.png","./images/gordukil_1.png","./images/gordukil_2.png","./images/gordukil_00.png","./images/gordukil_jump.png"],
                    ["./images/gordukilp_0.png","./images/gordukilp_1.png","./images/gordukilp_2.png","./images/gordukilp_00.png","./images/gordukilp_jump.png"]];
-    this.lives = 5;
+    this.lives = 3;
     this.image = new Image();
     this.image.src = this.frames[0][0];
     this.jumpState = true;
@@ -315,6 +320,8 @@ class Player extends Element {
     this.bananas = 0;
     this.coins = 0;
     this.points = 0;
+    this.goalAccomplished = false;
+    this.winCondition = false;
   }
 
   getRight()      { return this.xPosition + this.width - 18}
@@ -441,7 +448,9 @@ class Player extends Element {
         switch ( elementsArray[i].location ) {
           case 3: this.points += 1000; elementsArray.splice(i, 1); break;
           case 8: this.points += 1000; elementsArray.splice(i, 1); break;
-          case 9: this.points += 1000; elementsArray.splice(i, 1); break;
+          case 9: this.points += 1000; this.lives++; elementsArray.splice(i, 1); break;
+          case 14:  this.points += 2000; elementsArray.splice(i, 1); this.goalAccomplished = true; break;
+          case 19: this.points += 20000; elementsArray.splice(i, 1); this.winCondition = true; break;
         }
       }
     }
@@ -538,6 +547,7 @@ class Attack {
           elementsArray[i].yPosition += this.power;
           playerPoints += 100;
           if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
+          if ( elementsArray[i] instanceof KingGremlin &&  elementsArray[i].lives % 5 === 0 ) elementsArray[i].changeStats();
           return true;
         }
 
@@ -548,6 +558,7 @@ class Attack {
           elementsArray[i].yPosition -= this.power;
           playerPoints -= 100;
           if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
+          if ( elementsArray[i] instanceof KingGremlin &&  elementsArray[i].lives % 5 === 0 ) elementsArray[i].changeStats();
           return true;
         }
 
@@ -558,6 +569,7 @@ class Attack {
           elementsArray[i].yPosition -= (this.power * 2);
           playerPoints -= 200;
           if ( elementsArray[i].lives <= 0 ) elementsArray.splice(i, 1);
+          if ( elementsArray[i] instanceof KingGremlin &&  elementsArray[i].lives % 5 === 0 ) elementsArray[i].changeStats();
           return true;
         }
       }
@@ -641,6 +653,66 @@ class GremlinMinion extends Enemy {
       this.speed = 64;
       this.xVelocity = 0;
     }
+  }
+}
+
+class KingGremlin extends GremlinMinion {
+  constructor(x, y, width, height) {
+    super(x, y, width, height, frames);
+    this.frames = ["./images/enemies/gremlin_0.png","./images/enemies/gremlin_0.png","./images/enemies/gremlin_1.png","./images/enemies/gremlin_1.png","./images/enemies/gremlin_2.png","./images/enemies/gremlin_2.png",
+                   "./images/enemies/gremlin_00.png","./images/enemies/gremlin_00.png","./images/enemies/gremlin_01.png","./images/enemies/gremlin_01.png","./images/enemies/gremlin_02.png","./images/enemies/gremlin_02.png",
+                   "./images/enemies/gremlin_00.png","./images/enemies/gremlin_00.png","./images/enemies/gremlin_1.png","./images/enemies/gremlin_2.png"];
+    this.image = new Image();
+    this.image.src = this.frames[0];
+    this.xVelocity = 0;
+    this.yVelocity = 0;
+    this.speed = 64;
+    this.attacks = [];
+    this.lives = 10;
+    this.weakness = 2;
+    this.strength = 1;
+    this.immunity = 0;
+  }
+
+  update() {
+    if ( this.direction === "L") {
+      this.xPosition--;
+      this.speed--;
+    }
+    if ( this.direction === "R") {
+      this.xPosition++;
+      this.speed--;
+    }
+    this.collide();
+    this.animate();
+  }
+
+  changeStats() {
+    let random = Math.floor(Math.random()*3);
+    
+
+    this.strength = random;
+
+    switch(random) {
+      case 0: this.weakness = 1, this.immunity = 2; break;
+      case 1: this.weakness = 2, this.immunity = 0; break;
+      case 2: this.weakness = 0, this.immunity = 1; break;
+    }
+
+    console.log(this.weakness);
+  }
+
+  collide() {
+    if (this.speed <= 0) {
+      if ( this.direction === "L" ) this.direction = "R";
+      else if ( this.direction === "R" ) this.direction = "L";
+      this.speed = 64;
+      this.xVelocity = 0;
+    }
+  }
+
+  isDead() {
+    this.frames = ["./images/world_sprites/map_tiles.png"];
   }
 }
 
