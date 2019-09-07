@@ -659,9 +659,9 @@ class GremlinMinion extends Enemy {
 class KingGremlin extends GremlinMinion {
   constructor(x, y, width, height) {
     super(x, y, width, height, frames);
-    this.frames = ["./images/enemies/gremlin_0.png","./images/enemies/gremlin_0.png","./images/enemies/gremlin_1.png","./images/enemies/gremlin_1.png","./images/enemies/gremlin_2.png","./images/enemies/gremlin_2.png",
-                   "./images/enemies/gremlin_00.png","./images/enemies/gremlin_00.png","./images/enemies/gremlin_01.png","./images/enemies/gremlin_01.png","./images/enemies/gremlin_02.png","./images/enemies/gremlin_02.png",
-                   "./images/enemies/gremlin_00.png","./images/enemies/gremlin_00.png","./images/enemies/gremlin_1.png","./images/enemies/gremlin_2.png"];
+    this.frames = ["./images/enemies/kgremlin_0.png","./images/enemies/kgremlin_0.png","./images/enemies/kgremlin_1.png","./images/enemies/kgremlin_1.png","./images/enemies/kgremlin_2.png","./images/enemies/kgremlin_2.png",
+                   "./images/enemies/kgremlin_00.png","./images/enemies/kgremlin_00.png","./images/enemies/kgremlin_01.png","./images/enemies/kgremlin_01.png","./images/enemies/kgremlin_02.png","./images/enemies/kgremlin_02.png",
+                   "./images/enemies/kgremlin_00.png","./images/enemies/kgremlin_00.png","./images/enemies/kgremlin_1.png","./images/enemies/kgremlin_2.png"];
     this.image = new Image();
     this.image.src = this.frames[0];
     this.xVelocity = 0;
