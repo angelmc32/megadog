@@ -300,7 +300,7 @@ class Player extends Element {
     super(x, y, width, height, frames);
     this.frames = [["./images/gorduki_0.png","./images/gorduki_1.png","./images/gorduki_2.png","./images/gorduki_00.png","./images/gorduki_jump.png","./images/gorduki_sleep.png","./images/gorduki_over.png"],
                    ["./images/gordukip_0.png","./images/gordukip_1.png","./images/gordukip_2.png","./images/gordukip_00.png","./images/gordukip_jump.png"],
-                   ["./images/gordukil_0.png","./images/gordukil_1.png","./images/gordukil_2.png","./images/gordukil_00.png","./images/gordukil_jump.png"],
+                   ["./images/gordukil_0.png","./images/gordukil_1.png","./images/gordukil_2.png","./images/gordukil_00.png","./images/gordukil_jump.png","./images/gordukil_sleep.png"],
                    ["./images/gordukilp_0.png","./images/gordukilp_1.png","./images/gordukilp_2.png","./images/gordukilp_00.png","./images/gordukilp_jump.png"]];
     this.lives = 3;
     this.image = new Image();
@@ -349,7 +349,10 @@ class Player extends Element {
 
   animate() {
     if ( this.lives <= 0 ) {this.image.src = this.frames[0][6]; this.xVelocity = 0; this.yVelocity = 0}
-    else if ( this.invincible ) this.image.src = this.frames[0][5];
+    else if ( this.invincible ) {
+      if (this.direction === "R") this.image.src = this.frames[0][5];
+      if (this.direction === "L") this.image.src = this.frames[2][5];
+    }
     else if ( this.direction === "R" ) {
       if ( this.chargedState ) {
         if ( this.jumpState ) this.image.src = this.frames[1][4];
@@ -410,22 +413,22 @@ class Player extends Element {
         if (offsetX >= offsetY) {
           if ( vectorY > 0 && !this.invincible ) {
             this.lives -= 1;
-            this.points -= 500;
+            this.points -= 1000;
             this.invincible = true;
           } else if ( !this.invincible ) {
             this.lives -= 1;
             this.invincible = true;
-            this.points -= 500;
+            this.points -= 1000;
           }
         } else {
           if ( vectorX > 0 && !this.invincible ) {
             this.lives -= 1;
             this.invincible = true;
-            this.points -= 500;
+            this.points -= 1000;
           } else if ( !this.invincible ) {
             this.lives -= 1;
             this.invincible = true;
-            this.points -= 500;
+            this.points -= 1000;
           }
         }
       }
@@ -448,7 +451,7 @@ class Player extends Element {
         switch ( elementsArray[i].location ) {
           case 3: this.points += 1000; elementsArray.splice(i, 1); break;
           case 8: this.points += 1000; elementsArray.splice(i, 1); break;
-          case 9: this.points += 1000; this.lives++; elementsArray.splice(i, 1); break;
+          case 9: this.points += 5000; this.lives++; elementsArray.splice(i, 1); break;
           case 14:  this.points += 2000; elementsArray.splice(i, 1); this.goalAccomplished = true; break;
           case 19: this.points += 20000; elementsArray.splice(i, 1); this.winCondition = true; break;
         }
@@ -457,19 +460,23 @@ class Player extends Element {
   }
 
   attack() {
-    let imageSource = "./images/32ball.png"; 
+    let imageSource = "./images/32ball.png", attackStartingX = 0;
     switch(this.attackType) {
-      case 0: imageSource = "./images/32ball.png"; break;
-      case 1: imageSource = "./images/32water.png"; break;
-      case 2: imageSource = "./images/32fire.png"; break;
+      case 0: imageSource = ["./images/32ball.png","./images/32ball.png"]; break;
+      case 1: imageSource = ["./images/32water.png","./images/32waterleft.png"]; break;
+      case 2: imageSource = ["./images/32fire.png","./images/32fireleft.png"]; break;
       default: imageSource = "./images/32ball.png";
     }
     
     if (this.charge < 90 && !this.chargedState) {
-      let attack = new Attack(imageSource,this.xPosition + 40,this.yPosition + 24,16,16,12,this.attackType,this.direction);
+      if ( this.direction === 'L' ) attackStartingX = this.xPosition+8;
+      if ( this.direction === 'R' ) attackStartingX = this.xPosition+40;
+      let attack = new Attack(imageSource,attackStartingX,this.yPosition + 24,16,16,12,this.attackType,this.direction);
       this.attacks.push(attack);
     } else {
-      let attack = new Attack(imageSource,this.xPosition + 16,this.yPosition + 16,48,48,15,this.attackType,this.direction);
+      if ( this.direction === 'L' ) attackStartingX = this.xPosition-8;
+      if ( this.direction === 'R' ) attackStartingX = this.xPosition+16;
+      let attack = new Attack(imageSource,attackStartingX,this.yPosition + 16,48,48,15,this.attackType,this.direction);
       attack.power = 3;
       this.attacks.push(attack);
       this.charge = 0;
@@ -504,7 +511,10 @@ class Player extends Element {
   updateAttacks(enemiesArray) {
     for (let i = 0; i < this.attacks.length; i++) {
       if ( this.attacks[i].direction === "R" ) this.attacks[i].xPosition += this.attacks[i].xSpeed;
-      else if ( this.attacks[i].direction === "L" ) this.attacks[i].xPosition -= this.attacks[i].xSpeed;
+      else if ( this.attacks[i].direction === "L" ) {
+        this.attacks[i].image.src = this.attacks[i].frames[1];
+        this.attacks[i].xPosition -= this.attacks[i].xSpeed;
+      }
       if ( this.attacks[i].collisionCheck(this.points, enemiesArray) ) {
         this.attacks.splice(i,1);
         //this.points += 100;
@@ -515,8 +525,9 @@ class Player extends Element {
 
 class Attack {
   constructor(imageSource, x, y, height, width, xSpeed, attackType, direction) {
+    this.frames = imageSource;
     this.image = new Image();
-    this.image.src = imageSource;
+    this.image.src = this.frames[0];
     this.xPosition = x;
     this.yPosition = y;
     this.height = height;
