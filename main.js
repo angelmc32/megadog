@@ -6,20 +6,32 @@ window.addEventListener("load", function(event) {
   // CLASSES
 
   class Sound {
-    constructor(path) {
+    constructor(path, loopState = false) {
       this.sound = document.createElement("audio");
       this.sound.src = path;
-      this.sound.loop = true;
+      this.sound.loop = loopState;
       this.sound.setAttribute("preload", "auto");
       this.sound.setAttribute("controls", "none");
       this.sound.style.display = "none";
+      this.playing = false;
     }
 
     play() {
-    this.sound.play();
+      this.sound.play();
     }
+
+    play2() {
+      if ( !this.playing ) {
+        this.sound.play();
+        console.log("Playing growl");
+        this.playing = true;
+      }
+    }
+
     stop() {
-    this.sound.pause();
+      this.sound.pause();
+      this.playing = false;
+      console.log("Stopped playing")
     }
   }
 
@@ -82,11 +94,7 @@ window.addEventListener("load", function(event) {
   };
 
   document.onkeydown = function(event) {
-    if (
-      event.keyCode === 32 &&
-      game.world.player.attacks.length < 5 &&
-      game.world.player.charge < 5
-    )
+    if (event.keyCode === 32 && game.world.player.attacks.length < 5 && game.world.player.charge < 5)
       game.world.player.attack();
   };
 
@@ -126,30 +134,53 @@ window.addEventListener("load", function(event) {
     }
     if (control.up.active) {
       game.world.player.jump();
+      jumpSound.play2();
+      jumpSound.loop = false;
       control.up.active = false;
     }
     if (control.space.down) {
+      if ( game.world.player.chargedState) chargingSound.play2();
+      
       if (!game.world.player.chargedState) {
         game.world.player.charge++;
+        chargingSound.play2();
         if (game.world.player.charge > 49)
           game.world.player.chargedState = true;
       }
     }
-    if (game.world.player.chargedState && !control.space.down)
+    if (game.world.player.chargedState && !control.space.down) {
       game.world.player.attack();
+      if ( chargingSound.playing ) chargingSound.stop();
+    }
     if (!control.space.down) {
       if (game.world.player.charge > 5) game.world.player.attack();
       game.world.player.charge = 0;
+      chargingSound.stop();
     }
 
     if ( control.one.active ) {
       game.world.player.attackType = 0;
+      attackSound = ballSound;
     }
     if ( control.two.active ) {
       game.world.player.attackType = 1;
+      attackSound = WaterSound;
     }
     if ( control.three.active ) {
       game.world.player.attackType = 2;
+      attackSound = ballSound;
+    }
+
+    if ( game.world.player.yVelocity === 0 ) jumpSound.stop();
+
+    if ( game.world.player.winCondition ) {
+      winSound.play2();
+      worldMusic.stop();
+    }
+
+    if ( game.world.player.lives <= 0 ) {
+      gameOverSound.play2();
+      worldMusic.stop();
     }
 
     game.update();
@@ -164,7 +195,19 @@ window.addEventListener("load", function(event) {
   let levels = [level1];
   let frames = [];
   let game = new Game(frames, levels);
-  let worldMusic = new Sound("./sounds/05 Vanilla Dome.mp3");
+  let worldMusic = new Sound("./sounds/05 Vanilla Dome.mp3",true);
+  let chargingSound = new Sound("./sounds/Charging1.m4a",true);
+  let jumpSound = new Sound("./sounds/jump.wav");
+  jumpSound.loop = false;
+  let ballSound = new Sound("./sounds/ball.wav");
+  let fireSound = new Sound("./sounds/fireball.wav");
+  let WaterSound = new Sound("./sounds/waterball.wav");
+  let gameOverSound = new Sound("./sounds/game_over.wav");
+  gameOverSound.loop = false;
+  let winSound = new Sound("./sounds/win.wav");
+  winSound.loop = false;
+  let attackSound = ballSound;
+
   game.world.createEnemies();
   game.world.createItems();
   game.world.mapCollisionUpdate(game.world.maps[0]);
@@ -191,7 +234,7 @@ window.addEventListener("load", function(event) {
     
     resize();
   
-    engine.start(worldMusic);
+    engine.start();
     worldMusic.play();
 
     };
